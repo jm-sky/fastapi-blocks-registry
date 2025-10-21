@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include CLAUDE.md
+include pyproject.toml
+recursive-include fastapi_registry *.json
+recursive-include fastapi_registry/modules *.py
+recursive-include fastapi_registry/templates *

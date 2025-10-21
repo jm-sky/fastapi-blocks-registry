@@ -10,8 +10,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Jan Madeyski", email = "jan.madeyski@gmail.com"}
 ]
+keywords = ["fastapi", "scaffolding", "cli", "backend", "boilerplate", "templates", "code-generator"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -42,10 +43,10 @@ dev = [
 fastapi-registry = "fastapi_registry.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/fastapi-blocks-registry"
-Documentation = "https://github.com/yourusername/fastapi-blocks-registry#readme"
-Repository = "https://github.com/yourusername/fastapi-blocks-registry"
-Issues = "https://github.com/yourusername/fastapi-blocks-registry/issues"
+Homepage = "https://github.com/jm-sky/fastapi-blocks-registry"
+Documentation = "https://github.com/jm-sky/fastapi-blocks-registry#readme"
+Repository = "https://github.com/jm-sky/fastapi-blocks-registry"
+Issues = "https://github.com/jm-sky/fastapi-blocks-registry/issues"
 
 [tool.setuptools]
 package-dir = {"" = "."}
