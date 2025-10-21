@@ -1,209 +1,262 @@
-# 🧩 FastAPI Blocks Registry — modularny system scaffoldingu backendu
+# 🧩 FastAPI Blocks Registry
 
-## 🎯 Cel projektu
-System podobny do **shadcn-vue**, ale dla backendu w Pythonie (FastAPI).  
-Pozwala dodawać do projektu gotowe **moduły** (np. `auth`, `users`, `billing`, `projects`) jedną komendą CLI, kopiując kompletne komponenty — modele, schematy, routery, serwisy, konfiguracje i zależności.
+A modular scaffolding system for FastAPI backends, inspired by **shadcn-vue**.
+Add production-ready modules (like `auth`, `users`, `billing`) to your FastAPI project with a single CLI command.
 
----
+## 🎯 Project Goal
 
-## 🚀 Założenia
+FastAPI Blocks Registry allows you to quickly add complete, production-ready modules to your FastAPI projects. Each module includes models, schemas, routers, services, and all necessary configurations - just copy and customize.
 
-- Moduły backendowe są przechowywane w **registry** (lokalnym lub zdalnym, np. PyPI, GitHub Registry).
-- Użytkownik może zainstalować i dodać moduł do projektu komendą:
-  ```bash
-  fastapi-registry add auth
-  ```
-- Każdy moduł zawiera gotowe pliki, które są kopiowane do projektu (`app/modules/auth/`).
-- System automatycznie:
-  - aktualizuje `main.py` (dodaje router),
-  - aktualizuje `requirements.txt` (dodaje zależności modułu),
-  - może dodać wpisy do `.env` (np. JWT_SECRET),
-  - kopiuje gotowe configi / dependency injection.
+Unlike traditional packages, modules are copied directly into your project, giving you full control to modify and adapt them to your needs.
 
----
+## ✨ Features
 
-## 📁 Struktura katalogu paczki `fastapi_registry`
+- 📦 **Copy, not install** - Modules are copied into your project for full customization
+- 🔧 **Auto-configuration** - Automatically updates `main.py`, `requirements.txt`, and `.env`
+- 🎨 **Production-ready** - Each module follows best practices and includes proper error handling
+- 🔒 **Type-safe** - Full type hints and Pydantic validation
+- 📚 **Well-documented** - Clear code structure with docstrings
+- 🚀 **Quick start** - Get authentication, user management, and more in seconds
 
-```
-fastapi_registry/
-  ├─ __init__.py
-  ├─ cli.py
-  ├─ registry.json
-  ├─ modules/
-  │   ├─ auth/
-  │   │   ├─ models.py
-  │   │   ├─ schemas.py
-  │   │   ├─ router.py
-  │   │   ├─ service.py
-  │   │   ├─ dependencies.py
-  │   │   ├─ __init__.py
-  │   │   └─ template_config.json
-  │   └─ users/
-  │       └─ ...
-  └─ templates/
-      └─ ... (jeśli niektóre pliki generowane dynamicznie)
-```
+## 🚀 Quick Start
 
----
-
-## ⚙️ Plik `registry.json` (meta-informacje o modułach)
-
-```json
-{
-  "auth": {
-    "name": "Authentication",
-    "description": "JWT-based authentication with refresh tokens and user management",
-    "path": "modules/auth",
-    "dependencies": [
-      "python-jose[cryptography]",
-      "passlib[bcrypt]",
-      "bcrypt"
-    ],
-    "env": {
-      "JWT_SECRET_KEY": "change-me",
-      "JWT_EXPIRE_MINUTES": "60"
-    }
-  },
-  "users": {
-    "name": "User Management",
-    "description": "CRUD endpoints for user management",
-    "path": "modules/users",
-    "dependencies": []
-  }
-}
-```
-
----
-
-## 🧠 Komponenty modułu (np. `auth`)
-
-- `models.py` — modele SQLAlchemy (`User`, `RefreshToken`, itp.)
-- `schemas.py` — schematy Pydantic (`UserCreate`, `Token`, itp.)
-- `router.py` — definicje endpointów FastAPI
-- `service.py` — logika domenowa (np. weryfikacja hasła, generowanie tokenów)
-- `dependencies.py` — zależności dla FastAPI (np. `get_current_user`)
-- `__init__.py` — inicjalizacja modułu, np. `router = APIRouter(...)`
-
----
-
-## 🧰 CLI — główne komendy
-
-### `fastapi-registry list`
-Wyświetla dostępne moduły z registry.json  
-(przykład analogiczny do `npx shadcn@latest list`)
-
-### `fastapi-registry add <module>`
-Dodaje moduł do projektu:
-- kopiuje pliki do `/app/modules/<module>/`
-- dopisuje `include_router(...)` do `main.py`
-- dopisuje zależności do `requirements.txt`
-- ustawia zmienne ENV
-
-### `fastapi-registry remove <module>`
-Usuwa moduł i aktualizuje konfigurację projektu.
-
----
-
-## 🧩 CLI — implementacja (Typer)
-
-- Framework CLI: [**Typer**](https://typer.tiangolo.com/)
-- Operacje plikowe: `shutil`, `os`, `pathlib`
-- Parsowanie JSON: `json` standardowy
-- Szablony dynamiczne: opcjonalnie `cookiecutter`
-
----
-
-## 🪄 Przykład użycia w projekcie
+### Installation
 
 ```bash
-pip install fastapi-registry
+# Install from source (for development)
+pip install -e .
+
+# Or install from PyPI (when published)
+pip install fastapi-blocks-registry
+```
+
+### Usage
+
+```bash
+# List available modules
+fastapi-registry list
+
+# Show module details
+fastapi-registry info auth
+
+# Add a module to your project
+fastapi-registry add auth
+
+# Remove a module
+fastapi-registry remove auth
+```
+
+### What Gets Installed
+
+When you add a module, the CLI automatically:
+- ✅ Copies module files to `app/modules/<module>/`
+- ✅ Updates `main.py` to register the router
+- ✅ Adds dependencies to `requirements.txt`
+- ✅ Adds environment variables to `.env`
+
+## 📦 Available Modules
+
+### Auth Module
+
+Complete JWT-based authentication system with:
+- User registration with password strength validation
+- Login with JWT access and refresh tokens
+- Password reset flow
+- Password change for authenticated users
+- Token blacklisting support
+
+**Endpoints:**
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login user
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/forgot-password` - Request password reset
+- `POST /api/v1/auth/reset-password` - Reset password with token
+- `POST /api/v1/auth/change-password` - Change password (authenticated)
+- `GET /api/v1/auth/me` - Get current user info
+
+**Technologies:**
+- PyJWT for token management
+- Passlib + bcrypt for password hashing
+- Pydantic for validation
+- In-memory user store (easily replaceable with database)
+
+## 🏗️ Project Structure
+
+```
+fastapi-blocks-registry/
+├── fastapi_registry/
+│   ├── __init__.py
+│   ├── cli.py                  # CLI implementation
+│   ├── registry.json           # Module registry
+│   ├── core/
+│   │   ├── file_utils.py       # File operations
+│   │   ├── installer.py        # Module installer
+│   │   └── registry_manager.py # Registry management
+│   └── modules/
+│       └── auth/               # Auth module
+│           ├── __init__.py
+│           ├── models.py       # User model & store
+│           ├── schemas.py      # Pydantic schemas
+│           ├── router.py       # FastAPI routes
+│           ├── service.py      # Business logic
+│           ├── dependencies.py # FastAPI dependencies
+│           ├── auth_utils.py   # JWT & password utils
+│           └── exceptions.py   # Custom exceptions
+├── tests/
+├── docs/
+├── CLAUDE.md                   # Development guidelines
+├── README.md
+└── pyproject.toml
+```
+
+## 🧠 Module Structure
+
+Each module follows a consistent structure:
+
+- **`models.py`** - Data models (Pydantic or SQLAlchemy)
+- **`schemas.py`** - Request/response schemas with validation
+- **`router.py`** - FastAPI route definitions
+- **`service.py`** - Business logic layer
+- **`dependencies.py`** - FastAPI dependency injection
+- **`exceptions.py`** - Module-specific exceptions
+- **`__init__.py`** - Module initialization
+
+## 💻 Example Usage
+
+### 1. Add the auth module to your project
+
+```bash
+cd your-fastapi-project
 fastapi-registry add auth
 ```
 
-Automatycznie:
-1. Kopiuje katalog `auth` do `app/modules/auth/`
-2. Dopisuje do `main.py`:
-   ```python
-   from app.modules.auth.router import router as auth_router
-   app.include_router(auth_router, prefix="/auth", tags=["Auth"])
-   ```
-3. Dodaje zależności do `requirements.txt`
-4. Dodaje brakujące wpisy do `.env`
+### 2. Install dependencies
 
----
-
-## 🔧 Przykład kodu CLI (`cli.py`)
-
-```python
-import typer, json, shutil
-from pathlib import Path
-
-app = typer.Typer()
-
-@app.command()
-def list():
-    with open("registry.json") as f:
-        registry = json.load(f)
-    for name, data in registry.items():
-        typer.echo(f"- {name}: {data['description']}")
-
-@app.command()
-def add(module: str):
-    base = Path(__file__).parent
-    with open(base / "registry.json") as f:
-        registry = json.load(f)
-    if module not in registry:
-        typer.echo(f"Module '{module}' not found.")
-        raise typer.Exit(1)
-
-    src = base / registry[module]["path"]
-    dst = Path.cwd() / "app" / "modules" / module
-    shutil.copytree(src, dst, dirs_exist_ok=True)
-    typer.echo(f"✅ Added module '{module}'")
-
-if __name__ == "__main__":
-    app()
+```bash
+pip install -r requirements.txt
 ```
 
----
+### 3. Configure environment variables
 
-## 🔮 Możliwe rozszerzenia
+Edit your `.env` file:
+```bash
+SECRET_KEY=your-secret-key-min-32-characters
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRES_MINUTES=30
+REFRESH_TOKEN_EXPIRES_DAYS=7
+```
 
-- Wsparcie dla **customowych registry URL** (np. GitHub repo)
-- Integracja z **PyPI** (`pip install fastapi-registry[auth]`)
-- Generator testów (`pytest`) dla każdego modułu
-- System hooków (`on_add`, `on_remove`)
-- Integracja z Docker Compose (np. dodanie Redis, PostgreSQL)
-- Możliwość scaffoldingu całych domen (`billing`, `crm`, `projects`)
+### 4. Start your server
 
----
+```bash
+uvicorn main:app --reload
+```
 
-## 🧠 Inspiracje
+### 5. Test the endpoints
 
-- [shadcn-vue](https://github.com/shadcn-ui/ui)
-- [cookiecutter](https://cookiecutter.readthedocs.io/)
-- [Typer (by Sebastián Ramírez)](https://typer.tiangolo.com/)
-- [FastAPI Project Generators](https://fastapi.tiangolo.com/project-generation/)
+```bash
+# Register a new user
+curl -X POST "http://localhost:8000/api/v1/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "Test123!@#",
+    "name": "Test User"
+  }'
 
----
+# Login
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "Test123!@#"
+  }'
+```
 
-## 🏷️ Propozycje nazw
+## 🔧 CLI Commands
 
-- `fastapi-registry` *(czytelne i opisowe)*
-- `fastcn` *(luźne nawiązanie do shadcn)*
-- `fuseapi` *(od „fuse” – łączenie modułów)*
-- `fastapi-fuse`
-- `fastapi-modules`
+### `fastapi-registry list`
+Display all available modules from the registry
 
----
+### `fastapi-registry info <module>`
+Show detailed information about a specific module
 
-## 🧭 Kierunek rozwoju
+### `fastapi-registry add <module>`
+Add a module to your project:
+- Copies module files to `app/modules/<module>/`
+- Updates `main.py` with router registration
+- Adds dependencies to `requirements.txt`
+- Adds environment variables to `.env`
 
-1. Prototyp CLI + 1 moduł `auth`
-2. System registry + CLI komendy (`list`, `add`, `remove`)
-3. Publikacja na PyPI
-4. Integracja z GitHub Registry (zdalne moduły)
-5. Dodanie nowych modułów (`users`, `projects`, `billing`, `emails`)
-6. Integracja z CI (np. GitHub Actions do automatycznego budowania registry)
+### `fastapi-registry remove <module>`
+Remove a module from your project (manual cleanup required for dependencies)
 
----
+### `fastapi-registry version`
+Show version information
+
+## 🛠️ Development
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/fastapi-blocks-registry
+cd fastapi-blocks-registry
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install in editable mode
+pip install -e .
+```
+
+### Running Tests
+
+```bash
+pytest
+```
+
+### Code Quality
+
+```bash
+# Format code
+black .
+
+# Lint code
+ruff check .
+
+# Type checking
+mypy fastapi_registry
+```
+
+## 🔮 Roadmap
+
+- [x] CLI implementation with Typer
+- [x] Auth module with JWT
+- [x] Auto-configuration system
+- [ ] Users module with RBAC
+- [ ] Database integration (SQLAlchemy)
+- [ ] Alembic migrations support
+- [ ] Email module
+- [ ] Billing/subscription module
+- [ ] Projects/workspaces module
+- [ ] Remote registry support (GitHub)
+- [ ] PyPI publication
+- [ ] Module templates generator
+- [ ] Test generation for modules
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT
+
+## 🙏 Inspiration
+
+This project is inspired by:
+- [shadcn-vue](https://github.com/shadcn-ui/ui) - Copy, don't install philosophy
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [Typer](https://typer.tiangolo.com/) - CLI framework by the creator of FastAPI

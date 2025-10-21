@@ -1,0 +1,94 @@
+[MAIN]
+# Python version
+py-version=3.12
+
+# Files or directories to be skipped
+ignore=CVS,.git,__pycache__,.venv,venv,node_modules,migrations
+
+# Use multiple processes to speed up Pylint
+jobs=4
+
+[MESSAGES CONTROL]
+# Disable the following checks:
+disable=
+    no-else-return,
+    inconsistent-return-statements,
+
+    # Already disabled
+    missing-docstring,
+    broad-exception-caught,
+
+    # Design checks that are too restrictive for this project
+    too-few-public-methods,           # R0903: Many utility classes legitimately have 1 method
+    too-many-arguments,               # R0913: Complex integrations need many parameters
+    too-many-positional-arguments,    # R0917: Legitimate for complex APIs
+    too-many-instance-attributes,     # R0902: Complex orchestrators need many attributes
+    too-many-public-methods,          # R0904: API classes legitimately have many methods
+    too-many-locals,                  # R0914: Complex functions legitimately have many locals
+    too-many-return-statements,       # R0911: State machines legitimately have many returns
+    too-many-statements,              # R0915: Database initialization and complex operations need many statements
+
+    # Import-related (intentional patterns)
+    import-outside-toplevel,          # C0415: Used for lazy loading and circular import prevention
+    wrong-import-order,               # C0411: Auto-formatters handle this
+    ungrouped-imports,                # C0412: Minor style issue
+
+    # Unused arguments (often required by interface/callbacks)
+    unused-argument,                  # W0613: Callback signatures require unused args
+
+    # Code duplication (will address separately if needed)
+    duplicate-code,                   # R0801: Similar patterns in repositories is intentional
+
+    # Minor style issues
+    pointless-string-statement,       # W0105: Docstrings in non-standard locations
+    fixme,                            # W0511: TODOs are tracked separately
+
+    # Logging (f-strings are more readable)
+    logging-fstring-interpolation,    # W1203: f-strings are clearer than % formatting
+
+[BASIC]
+# Naming conventions
+# Allow eventData, jwtMode etc. (camelCase from external APIs)
+argument-naming-style=any
+attr-naming-style=any
+variable-naming-style=any
+
+# But enforce snake_case for functions (with exceptions)
+function-naming-style=snake_case
+method-naming-style=snake_case
+
+# Good variable names which should always be accepted
+good-names=i,j,k,ex,db,_,e,f,id
+
+[FORMAT]
+# Maximum line length (consistent with flake8)
+max-line-length=256
+
+# Allow the body of an if to be on the same line if it's short enough
+single-line-if-stmt=no
+
+[DESIGN]
+# Relaxed limits for complex integrations
+max-args=12
+max-locals=20
+max-attributes=15
+max-public-methods=40
+max-returns=10
+
+[SIMILARITIES]
+# Minimum lines number of a similarity (increase to reduce false positives)
+min-similarity-lines=10
+
+[REPORTS]
+# Set output format
+output-format=colorized
+
+# Include message id in output
+msg-template={path}:{line}:{column}: [{msg_id}({symbol})] {msg}
+
+# Reports section (disable to reduce noise)
+reports=no
+
+[TYPECHECK]
+# List of members which are set dynamically and missed by pylint inference
+generated-members=
