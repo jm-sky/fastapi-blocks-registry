@@ -1,0 +1,75 @@
+"""Application configuration using Pydantic Settings."""
+
+from typing import List
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
+    )
+
+    # Project Information
+    PROJECT_NAME: str = "FastAPI Application"
+    PROJECT_DESCRIPTION: str = "A FastAPI application"
+    VERSION: str = "0.1.0"
+    ENVIRONMENT: str = "development"
+
+    # API Configuration
+    API_V1_PREFIX: str = "/api/v1"
+
+    # CORS Configuration
+    CORS_ORIGINS: str = "http://localhost:3000"
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Parse CORS origins from comma-separated string."""
+        if isinstance(self.CORS_ORIGINS, str):
+            return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return [self.CORS_ORIGINS]
+
+    # Database Configuration
+    DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
+
+    # Security
+    SECRET_KEY: str = "your-secret-key-here-change-in-production"
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        """Validate that secret key is strong enough."""
+        if len(v) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+        if v == "your-secret-key-here-change-in-production":
+            import warnings
+            warnings.warn(
+                "WARNING: You are using the default SECRET_KEY. "
+                "Please change it in production!",
+                UserWarning,
+                stacklevel=2
+            )
+        return v
+
+    # Logging
+    LOG_LEVEL: str = "INFO"
+
+    @property
+    def is_development(self) -> bool:
+        """Check if running in development mode."""
+        return self.ENVIRONMENT.lower() in ("development", "dev", "local")
+
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production mode."""
+        return self.ENVIRONMENT.lower() in ("production", "prod")
+
+
+# Create settings instance
+settings = Settings()
+

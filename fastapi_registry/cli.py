@@ -1,6 +1,5 @@
 """CLI for FastAPI Blocks Registry."""
 
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -12,6 +11,7 @@ from rich import print as rprint
 
 from fastapi_registry.core.registry_manager import RegistryManager
 from fastapi_registry.core.installer import ModuleInstaller
+from fastapi_registry.core.project_initializer import ProjectInitializer
 
 # Initialize Typer app
 app = typer.Typer(
@@ -25,6 +25,7 @@ console = Console()
 
 # Get the path to the registry.json file
 REGISTRY_PATH = Path(__file__).parent / "registry.json"
+TEMPLATES_PATH = Path(__file__).parent / "templates"
 
 
 @app.command()
@@ -193,14 +194,14 @@ def add(
 
         # Show next steps
         console.print("[bold]Next steps:[/bold]")
-        console.print(f"  1. Install dependencies: [cyan]pip install -r requirements.txt[/cyan]")
+        console.print("  1. Install dependencies: [cyan]pip install -r requirements.txt[/cyan]")
 
         if module.env:
-            console.print(f"  2. Configure environment variables in [cyan].env[/cyan]")
-            console.print(f"     (check the newly added variables)")
+            console.print("  2. Configure environment variables in [cyan].env[/cyan]")
+            console.print("     (check the newly added variables)")
 
-        console.print(f"  3. Run database migrations if needed")
-        console.print(f"  4. Start your FastAPI server: [cyan]uvicorn main:app --reload[/cyan]\n")
+        console.print("  3. Run database migrations if needed")
+        console.print("  4. Start your FastAPI server: [cyan]uvicorn main:app --reload[/cyan]\n")
 
     except FileNotFoundError as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -240,7 +241,7 @@ def remove(
 
         # Ask for confirmation
         if not yes:
-            console.print(f"[yellow]Warning:[/yellow] This will remove the module directory and its contents.")
+            console.print("[yellow]Warning:[/yellow] This will remove the module directory and its contents.")
             console.print(f"[dim]Path: {module_path}[/dim]\n")
             confirm = typer.confirm(
                 f"Remove module '{module_name}'?",
@@ -250,7 +251,7 @@ def remove(
                 console.print("[yellow]Cancelled.[/yellow]")
                 raise typer.Exit(0)
 
-        console.print(f"\n[yellow]Note:[/yellow] This command only removes the module files.")
+        console.print("\n[yellow]Note:[/yellow] This command only removes the module files.")
         console.print("You'll need to manually:")
         console.print("  • Remove router registration from main.py")
         console.print("  • Remove dependencies from requirements.txt (if not used elsewhere)")
@@ -278,13 +279,113 @@ def init(
         None,
         "--name",
         "-n",
-        help="Project name"
+        help="Project name (defaults to directory name)"
+    ),
+    description: Optional[str] = typer.Option(
+        None,
+        "--description",
+        "-d",
+        help="Project description"
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Initialize even if directory is not empty"
     )
 ) -> None:
     """Initialize a new FastAPI project structure."""
-    console.print("[yellow]'init' command is not yet implemented.[/yellow]")
-    console.print("[dim]This will create a basic FastAPI project structure in a future version.[/dim]")
-    raise typer.Exit(0)
+    try:
+        # Determine project path
+        if project_path is None:
+            project_path = Path.cwd()
+
+        project_path = project_path.resolve()
+
+        # Validate project name if provided
+        initializer = ProjectInitializer(TEMPLATES_PATH)
+        if name and not initializer.validate_project_name(name):
+            console.print(
+                "[red]Error:[/red] Invalid project name. "
+                "Must start with a letter and contain only alphanumeric characters, underscores, or hyphens."
+            )
+            raise typer.Exit(1)
+
+        # Show what will be created
+        console.print("\n[bold cyan]Initializing FastAPI project[/bold cyan]")
+        console.print(f"[dim]Location:[/dim] {project_path}")
+        if name:
+            console.print(f"[dim]Name:[/dim] {name}")
+        console.print()
+
+        # Check if directory is not empty
+        if project_path.exists() and any(project_path.iterdir()) and not force:
+            console.print("[yellow]Warning:[/yellow] Directory is not empty.")
+            if not typer.confirm("Initialize anyway?", default=False):
+                console.print("[yellow]Cancelled.[/yellow]")
+                raise typer.Exit(0)
+            force = True
+
+        # Initialize project
+        with console.status("[bold green]Creating project structure...", spinner="dots"):
+            initializer.init_project(
+                project_path=project_path,
+                project_name=name,
+                project_description=description,
+                force=force,
+            )
+
+        console.print("[bold green]✓[/bold green] Project initialized successfully!\n")
+
+        # Show project structure
+        console.print("[bold]Created files:[/bold]")
+        files = [
+            "main.py",
+            "requirements.txt",
+            ".env",
+            ".gitignore",
+            ".flake8",
+            ".pylintrc",
+            "pyproject.toml",
+            "README.md",
+            "app/",
+            "  __init__.py",
+            "  core/",
+            "    __init__.py",
+            "    config.py",
+            "    database.py",
+            "  modules/",
+            "    __init__.py",
+        ]
+        for file in files:
+            console.print(f"  [dim]•[/dim] {file}")
+
+        # Show next steps
+        console.print("\n[bold]Next steps:[/bold]")
+        console.print("  1. Review and update [cyan].env[/cyan] with your configuration")
+        console.print("  2. Create a virtual environment:")
+        console.print("     [cyan]python -m venv venv[/cyan]")
+        console.print("     [cyan]source venv/bin/activate[/cyan]  [dim]# On Windows: venv\\Scripts\\activate[/dim]")
+        console.print("  3. Install dependencies:")
+        console.print("     [cyan]pip install -r requirements.txt[/cyan]")
+        console.print("  4. Add modules to your project:")
+        console.print("     [cyan]fastapi-registry list[/cyan]")
+        console.print("     [cyan]fastapi-registry add <module-name>[/cyan]")
+        console.print("  5. Start the development server:")
+        console.print("     [cyan]uvicorn main:app --reload[/cyan]")
+        console.print()
+
+    except FileExistsError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+    except ValueError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Unexpected error:[/red] {e}")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -292,7 +393,7 @@ def version() -> None:
     """Show version information."""
     from fastapi_registry import __version__, __description__
 
-    rprint(f"\n[bold cyan]FastAPI Blocks Registry[/bold cyan]")
+    rprint("\n[bold cyan]FastAPI Blocks Registry[/bold cyan]")
     rprint(f"[dim]{__description__}[/dim]")
     rprint(f"\nVersion: [yellow]{__version__}[/yellow]\n")
 

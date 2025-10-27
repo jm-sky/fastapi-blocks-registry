@@ -33,6 +33,9 @@ pip install fastapi-blocks-registry
 ### Usage
 
 ```bash
+# Initialize a new FastAPI project
+fastapi-registry init
+
 # List available modules
 fastapi-registry list
 
@@ -123,20 +126,63 @@ Each module follows a consistent structure:
 
 ## 💻 Example Usage
 
-### 1. Add the auth module to your project
+### Starting from Scratch
+
+#### 1. Initialize a new project
+
+```bash
+# Create project directory
+mkdir my-fastapi-app
+cd my-fastapi-app
+
+# Initialize project structure
+fastapi-registry init --name "My FastAPI App"
+```
+
+#### 2. Set up virtual environment
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+#### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 4. Add modules
+
+```bash
+# Add authentication module
+fastapi-registry add auth
+```
+
+#### 5. Configure and run
+
+```bash
+# Edit .env with your settings
+# Then start the server
+uvicorn main:app --reload
+```
+
+### Adding to Existing Project
+
+#### 1. Add the auth module to your project
 
 ```bash
 cd your-fastapi-project
 fastapi-registry add auth
 ```
 
-### 2. Install dependencies
+#### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
+#### 3. Configure environment variables
 
 Edit your `.env` file:
 ```bash
@@ -146,13 +192,13 @@ ACCESS_TOKEN_EXPIRES_MINUTES=30
 REFRESH_TOKEN_EXPIRES_DAYS=7
 ```
 
-### 4. Start your server
+#### 4. Start your server
 
 ```bash
 uvicorn main:app --reload
 ```
 
-### 5. Test the endpoints
+#### 5. Test the endpoints
 
 ```bash
 # Register a new user
@@ -175,8 +221,41 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
 
 ## 🔧 CLI Commands
 
+### `fastapi-registry init`
+Initialize a new FastAPI project with proper structure:
+- Creates `main.py` with FastAPI app setup
+- Sets up `app/` directory structure
+- Creates `app/core/` with config and database utilities
+- Creates `app/modules/` for your modules
+- Generates `requirements.txt` with essential dependencies
+- Creates `.env` with default configuration
+- Adds `.gitignore`, `README.md`, and development config files
+- Includes code quality tools config (`.flake8`, `.pylintrc`, `pyproject.toml`)
+
+**Options:**
+- `--project-path, -p` - Path to create project (default: current directory)
+- `--name, -n` - Project name (default: directory name)
+- `--description, -d` - Project description
+- `--force, -f` - Initialize even if directory is not empty
+
+**Example:**
+```bash
+# Initialize in current directory
+fastapi-registry init
+
+# Create a new project directory
+mkdir my-api && cd my-api
+fastapi-registry init --name "My API" --description "My awesome API"
+
+# Initialize in specific path
+fastapi-registry init --project-path /path/to/project
+```
+
 ### `fastapi-registry list`
 Display all available modules from the registry
+
+**Options:**
+- `--search, -s` - Search modules by name or description
 
 ### `fastapi-registry info <module>`
 Show detailed information about a specific module
@@ -188,8 +267,16 @@ Add a module to your project:
 - Adds dependencies to `requirements.txt`
 - Adds environment variables to `.env`
 
+**Options:**
+- `--project-path, -p` - Path to FastAPI project (default: current directory)
+- `--yes, -y` - Skip confirmation prompts
+
 ### `fastapi-registry remove <module>`
 Remove a module from your project (manual cleanup required for dependencies)
+
+**Options:**
+- `--project-path, -p` - Path to FastAPI project (default: current directory)
+- `--yes, -y` - Skip confirmation prompts
 
 ### `fastapi-registry version`
 Show version information
@@ -233,6 +320,7 @@ mypy fastapi_registry
 ## 🔮 Roadmap
 
 - [x] CLI implementation with Typer
+- [x] Project initialization command
 - [x] Auth module with JWT
 - [x] Auto-configuration system
 - [ ] Users module with RBAC

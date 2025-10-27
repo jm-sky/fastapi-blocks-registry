@@ -1,0 +1,55 @@
+[MAIN]
+# Python version
+py-version=3.12
+
+# Files or directories to be skipped
+ignore=CVS,.git,__pycache__,.venv,venv,node_modules,migrations,dist,build
+
+# Use multiple processes to speed up Pylint
+jobs=4
+
+[MESSAGES CONTROL]
+# Disable the following checks:
+disable=
+    missing-docstring,
+    broad-exception-caught,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-many-instance-attributes,
+    too-many-locals,
+    too-many-return-statements,
+    import-outside-toplevel,
+    unused-argument,
+    fixme,
+    logging-fstring-interpolation,
+
+[BASIC]
+# Naming conventions
+argument-naming-style=snake_case
+attr-naming-style=snake_case
+variable-naming-style=snake_case
+function-naming-style=snake_case
+method-naming-style=snake_case
+
+# Good variable names which should always be accepted
+good-names=i,j,k,ex,db,_,e,f,id,pk
+
+[FORMAT]
+# Maximum line length (consistent with black)
+max-line-length=88
+
+[DESIGN]
+# Relaxed limits
+max-args=10
+max-locals=15
+max-attributes=12
+max-public-methods=30
+
+[REPORTS]
+# Set output format
+output-format=colorized
+
+# Reports section (disable to reduce noise)
+reports=no
+
