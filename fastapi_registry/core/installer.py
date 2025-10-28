@@ -86,21 +86,31 @@ class ModuleInstaller:
                 create_if_missing=True
             )
 
-        # Update main.py
-        main_py_path = file_utils.find_main_py(project_path)
-        if main_py_path:
+        # Update app/api/router.py to register the module router
+        router_py_path = project_path / "app" / "api" / "router.py"
+        if router_py_path.exists():
             if create_backup:
-                file_utils.create_backup(main_py_path)
+                file_utils.create_backup(router_py_path)
 
-            file_utils.add_router_to_main(
-                main_py_path,
+            file_utils.add_router_to_api_router(
+                router_py_path,
                 module_name,
                 module.router_prefix,
                 module.tags
             )
         else:
-            # If main.py not found, just warn (user might have custom structure)
-            pass
+            # If router.py not found, try legacy main.py approach
+            main_py_path = file_utils.find_main_py(project_path)
+            if main_py_path:
+                if create_backup:
+                    file_utils.create_backup(main_py_path)
+
+                file_utils.add_router_to_main(
+                    main_py_path,
+                    module_name,
+                    module.router_prefix,
+                    module.tags
+                )
 
     def _validate_project_structure(self, project_path: Path) -> None:
         """

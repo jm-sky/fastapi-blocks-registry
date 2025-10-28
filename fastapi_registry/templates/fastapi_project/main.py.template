@@ -10,10 +10,6 @@ configure_logging()
 # Create FastAPI application using factory pattern
 app = create_app()
 
-# fastapi-registry imports
-
-# fastapi-registry routers
-
 
 if __name__ == "__main__":
     import uvicorn

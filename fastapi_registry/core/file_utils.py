@@ -257,6 +257,66 @@ def find_last_import_line(content: str) -> Optional[int]:
     return last_import_line
 
 
+def add_router_to_api_router(
+    router_py_path: Path,
+    module_name: str,
+    router_prefix: str,
+    tags: List[str]
+) -> None:
+    """
+    Add router import and registration to app/api/router.py.
+
+    This is the preferred method for adding routes (vs add_router_to_main).
+    Routes should be registered in app/api/router.py, not in main.py.
+
+    Args:
+        router_py_path: Path to app/api/router.py
+        module_name: Name of the module
+        router_prefix: URL prefix for the router (e.g., "/auth")
+        tags: Tags for the router
+    """
+    content = read_file(router_py_path)
+
+    # Prepare import and router registration
+    import_line = f"from app.modules.{module_name}.router import router as {module_name}_router"
+    router_line = f'api_router.include_router({module_name}_router, prefix="{router_prefix}", tags={tags})'
+
+    # Check if already added
+    if import_line in content:
+        return  # Already added
+
+    # Find where to add the import (after existing imports, before api_router = APIRouter())
+    lines = content.splitlines(keepends=True)
+
+    # Find last import line
+    last_import_idx = None
+    api_router_idx = None
+
+    for i, line in enumerate(lines):
+        if re.match(r"^\s*(?:from|import)\s+", line):
+            last_import_idx = i
+        if "api_router = APIRouter()" in line:
+            api_router_idx = i
+
+    # Add import after last import
+    if last_import_idx is not None:
+        lines.insert(last_import_idx + 1, f"{import_line}\n")
+    else:
+        # No imports found, add after docstring or at beginning
+        lines.insert(2, f"\n{import_line}\n")
+
+    # Add router registration at the end (before last blank line if exists)
+    # Remove trailing empty lines
+    while lines and lines[-1].strip() == "":
+        lines.pop()
+
+    # Add router registration
+    lines.append(f"\n{router_line}\n")
+
+    content = "".join(lines)
+    write_file(router_py_path, content)
+
+
 def create_backup(file_path: Path) -> Path:
     """
     Create a backup of a file.
