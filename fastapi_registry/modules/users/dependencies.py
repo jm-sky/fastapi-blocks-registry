@@ -1,47 +1,79 @@
-"""FastAPI dependencies for user management module."""
+"""FastAPI dependencies for user management module.
 
+SECURITY WARNING: Mock Authentication
+======================================
+
+This module uses MOCK authentication for demonstration purposes.
+The get_current_user() function returns the first user in the store,
+effectively bypassing all authentication checks!
+
+DO NOT USE IN PRODUCTION WITHOUT PROPER AUTHENTICATION!
+
+Integration Options:
+--------------------
+
+Option 1: Integrate with auth module (RECOMMENDED if using both modules)
+    1. Import auth module's get_current_user:
+       from app.modules.auth.dependencies import get_current_user
+    2. Comment out or remove the mock implementation below
+    3. Both modules will share the same authentication
+
+Option 2: Implement your own authentication
+    1. Extract JWT token from Authorization header
+    2. Validate the token using PyJWT
+    3. Get user from database by token's user_id
+    4. Return the authenticated user
+
+Option 3: Use NotImplementedError (forces explicit implementation)
+    Replace mock implementation with:
+    raise NotImplementedError(
+        "Authentication not configured. See users/dependencies.py for integration options."
+    )
+"""
+
+import os
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 
-from .exceptions import UnauthorizedError
 from .models import User
 
-# NOTE: This is a placeholder dependency for the current user.
-# In a real application, this would integrate with the auth module
-# to extract and validate the JWT token from the request headers.
+# Check if we should allow mock authentication
+ALLOW_MOCK_AUTH = os.getenv("ALLOW_MOCK_AUTH", "false").lower() == "true"
 
 
 async def get_current_user() -> User:
     """
     Get the currently authenticated user.
 
-    NOTE: This is a mock implementation for demonstration purposes.
-    In production, this should:
-    1. Extract JWT token from Authorization header
-    2. Validate the token
-    3. Get user from database by token's subject (user_id)
-    4. Return the authenticated user
+    SECURITY WARNING: This is a MOCK implementation that returns any user!
 
-    Example integration with auth module:
-    ```python
-    from ..auth.dependencies import get_current_user as auth_get_current_user
-    from ..auth.models import User as AuthUser
+    To use this in development, set environment variable:
+        ALLOW_MOCK_AUTH=true
 
-    async def get_current_user(auth_user: Annotated[AuthUser, Depends(auth_get_current_user)]) -> User:
-        # Convert auth user to users module user or fetch from user_store
-        return user_store.get_user_by_id(auth_user.id)
-    ```
+    For production, you MUST implement real authentication.
+    See module docstring for integration options.
     """
-    # Mock user for demonstration
+    if not ALLOW_MOCK_AUTH:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=(
+                "Authentication not configured. "
+                "To integrate with auth module, import get_current_user from "
+                "app.modules.auth.dependencies. "
+                "For development testing, set ALLOW_MOCK_AUTH=true environment variable. "
+                "See app/modules/users/dependencies.py for details."
+            ),
+        )
+
+    # MOCK IMPLEMENTATION - DO NOT USE IN PRODUCTION
     from .models import user_store
 
-    # In production, this would come from JWT token
     mock_user = user_store.get_all_users(limit=1)
     if not mock_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Not authenticated (no users in store)",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return mock_user[0]

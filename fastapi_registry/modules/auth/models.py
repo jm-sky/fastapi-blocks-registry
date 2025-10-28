@@ -1,26 +1,58 @@
-"""User model and data store for authentication."""
+"""User model and data store for authentication.
 
+IMPORTANT: Module Integration Notice
+=====================================
+
+This auth module provides a complete User model with authentication features
+(password hashing, JWT tokens, etc.). If you're also using the users module,
+you should integrate them to share the same User model:
+
+Integration Steps:
+1. In users/dependencies.py, import from this auth module:
+   from app.modules.auth.models import user_store, User
+   from app.modules.auth.dependencies import get_current_user
+
+2. Remove users/models.py (or keep it as a reference)
+
+3. Update users/service.py to use the auth module's user_store
+
+This ensures both modules work with the same user data and there's no
+duplication or inconsistency.
+
+For production use:
+- Replace in-memory UserStore with database (SQLAlchemy with PostgreSQL/MySQL)
+- Implement proper session management
+- Add email verification and 2FA if needed
+"""
+
+import logging
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from pydantic import BaseModel, EmailStr
 
+logger = logging.getLogger(__name__)
+
 try:
-    from ulid import ULID
+    from ulid import ULID  # noqa: E402
     USE_ULID = True
 except ImportError:
-    import uuid
+    import uuid  # noqa: E402
     USE_ULID = False
 
-from .auth_utils import (
+from .auth_utils import (  # noqa: E402
+    create_password_reset_token,
     get_password_hash,
     verify_password,
-    create_password_reset_token,
-    verify_token
+    verify_token,
 )
-from .exceptions import UserAlreadyExistsError
+from .exceptions import (  # noqa: E402
+    ExpiredTokenError,
+    InvalidTokenError,
+    UserAlreadyExistsError,
+)
 
 
 class User(BaseModel):
@@ -32,8 +64,8 @@ class User(BaseModel):
     hashedPassword: str
     isActive: bool = True
     createdAt: datetime
-    resetToken: Optional[str] = None
-    resetTokenExpiry: Optional[datetime] = None
+    resetToken: str | None = None
+    resetTokenExpiry: datetime | None = None
 
     def verify_password(self, password: str) -> bool:
         """Verify password against stored hash."""
@@ -64,18 +96,28 @@ class User(BaseModel):
 
             # Check token type
             if payload.get("type") != "password_reset":
+                logger.debug("Invalid token type for password reset")
                 return False
 
             # Check if it matches stored token using secure comparison
             if not secrets.compare_digest(self.resetToken, token):
+                logger.warning("Reset token mismatch for user %s", self.id)
                 return False
 
             # Check user ID matches
             if payload.get("sub") != self.id:
+                logger.warning("User ID mismatch in reset token")
                 return False
 
             return True
-        except Exception:
+        except ExpiredTokenError:
+            logger.debug("Reset token expired for user %s", self.id)
+            return False
+        except InvalidTokenError:
+            logger.debug("Invalid reset token for user %s", self.id)
+            return False
+        except Exception as e:
+            logger.error("Unexpected error validating reset token: %s", e, exc_info=True)
             return False
 
     def to_response(self) -> dict[str, Any]:
@@ -116,7 +158,7 @@ class UserStore:
             email=normalized_email,
             name=full_name,
             hashedPassword=get_password_hash(password),
-            createdAt=datetime.now(timezone.utc)
+            createdAt=datetime.now(UTC)
         )
 
         self._users[user_id] = user
@@ -124,7 +166,7 @@ class UserStore:
 
         return user
 
-    def get_user_by_email(self, email: str) -> Optional[User]:
+    def get_user_by_email(self, email: str) -> User | None:
         """Get user by email."""
         normalized_email = email.lower().strip()
         user_id = self._email_index.get(normalized_email)
@@ -132,7 +174,7 @@ class UserStore:
             return self._users.get(user_id)
         return None
 
-    def get_user_by_id(self, user_id: str) -> Optional[User]:
+    def get_user_by_id(self, user_id: str) -> User | None:
         """Get user by ID."""
         return self._users.get(user_id)
 
@@ -145,7 +187,7 @@ class UserStore:
         self._users[user.id] = user
         return user
 
-    def generate_reset_token(self, email: str) -> Optional[str]:
+    def generate_reset_token(self, email: str) -> str | None:
         """Generate and store JWT password reset token for user."""
         user = self.get_user_by_email(email)
         if not user or not user.isActive:
@@ -155,7 +197,7 @@ class UserStore:
         token = create_password_reset_token(data={"sub": user.id})
 
         # Store token
-        user.set_reset_token(token, datetime.now(timezone.utc) + timedelta(hours=1))
+        user.set_reset_token(token, datetime.now(UTC) + timedelta(hours=1))
         self.update_user(user)
 
         return token
@@ -191,17 +233,42 @@ user_store = UserStore()
 
 
 def seed_development_user() -> None:
-    """Create a default test user for development environment only."""
+    """
+    Create a default test user for development environment only.
+
+    This function should ONLY be called when explicitly enabled via
+    SEED_DEVELOPMENT_USER environment variable set to 'true'.
+
+    Note:
+        Test credentials:
+        - Email: test@example.com
+        - Password: Test123!@#
+    """
     try:
         user_store.create_user(
             email="test@example.com",
             password="Test123!@#",
             full_name="Test User"
         )
+        logger.warning(
+            "DEV MODE: Created test user account:\n"
+            "  Email: test@example.com\n"
+            "  Password: Test123!@#\n"
+            "  IMPORTANT: Remove this user in production!"
+        )
     except UserAlreadyExistsError:
-        pass  # User already exists
+        logger.debug("Development test user already exists")
 
 
-# Only seed user in development environment
-if os.getenv("ENVIRONMENT", "development").lower() == "development":
-    seed_development_user()
+# Only seed user if explicitly enabled AND not in production
+environment = os.getenv("ENVIRONMENT", "production").lower()
+seed_enabled = os.getenv("SEED_DEVELOPMENT_USER", "false").lower() == "true"
+
+if seed_enabled:
+    if environment != "production":
+        seed_development_user()
+    else:
+        logger.error(
+            "SECURITY WARNING: Attempted to seed development user in production environment. "
+            "This is blocked for security reasons. Unset SEED_DEVELOPMENT_USER in production."
+        )

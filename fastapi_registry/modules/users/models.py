@@ -1,7 +1,32 @@
-"""User model for user management module."""
+"""User model for user management module.
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+IMPORTANT: Module Integration Notice
+=====================================
+
+This users module has its own User model and UserStore that is separate from
+the auth module's User model. This is intentional for demonstration purposes,
+but in a real application you should:
+
+1. If using BOTH auth and users modules together:
+   - Modify users/dependencies.py to import from auth module:
+     from app.modules.auth.models import user_store
+     from app.modules.auth.dependencies import get_current_user
+   - Remove this models.py file from users module
+   - Use the auth module's User model as the single source of truth
+
+2. If using ONLY users module (without auth):
+   - Keep this model as-is
+   - Implement your own authentication in users/dependencies.py
+   - Replace the mock get_current_user() with real authentication
+
+For production use, it's recommended to:
+- Use a single User model shared between modules
+- Store users in a database (PostgreSQL, MySQL, etc.) not in-memory
+- Implement proper authentication and authorization
+"""
+
+from datetime import UTC, datetime
+from typing import Any
 
 from pydantic import BaseModel, EmailStr
 
@@ -58,7 +83,7 @@ class UserStore:
         else:
             user_id = str(uuid.uuid4())
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         user = User(
             id=user_id,
             email=normalized_email,
@@ -74,7 +99,7 @@ class UserStore:
 
         return user
 
-    def get_user_by_email(self, email: str) -> Optional[User]:
+    def get_user_by_email(self, email: str) -> User | None:
         """Get user by email."""
         normalized_email = email.lower().strip()
         user_id = self._email_index.get(normalized_email)
@@ -82,7 +107,7 @@ class UserStore:
             return self._users.get(user_id)
         return None
 
-    def get_user_by_id(self, user_id: str) -> Optional[User]:
+    def get_user_by_id(self, user_id: str) -> User | None:
         """Get user by ID."""
         return self._users.get(user_id)
 
@@ -100,11 +125,11 @@ class UserStore:
     def update_user(
         self,
         user_id: str,
-        email: Optional[str] = None,
-        name: Optional[str] = None,
-        role: Optional[str] = None,
-        is_active: Optional[bool] = None,
-    ) -> Optional[User]:
+        email: str | None = None,
+        name: str | None = None,
+        role: str | None = None,
+        is_active: bool | None = None,
+    ) -> User | None:
         """Update user fields."""
         user = self.get_user_by_id(user_id)
         if not user:
@@ -132,7 +157,7 @@ class UserStore:
         if is_active is not None:
             user.isActive = is_active
 
-        user.updatedAt = datetime.now(timezone.utc)
+        user.updatedAt = datetime.now(UTC)
         self._users[user_id] = user
 
         return user
@@ -144,7 +169,7 @@ class UserStore:
             return False
 
         user.isActive = False
-        user.updatedAt = datetime.now(timezone.utc)
+        user.updatedAt = datetime.now(UTC)
         self._users[user_id] = user
         return True
 

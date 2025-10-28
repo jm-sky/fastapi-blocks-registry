@@ -30,12 +30,14 @@
     "version": "1.0.0",
     "path": "modules/users",
     "dependencies": [],
+    "module_dependencies": ["auth"],
     "python_version": ">=3.12",
     "env": {},
     "settings_class": "UserSettings",
     "router_prefix": "/users",
     "tags": ["Users"],
     "author": "FastAPI Blocks Registry",
-    "repository": "https://github.com/yourusername/fastapi-blocks-registry"
+    "repository": "https://github.com/yourusername/fastapi-blocks-registry",
+    "notes": "IMPORTANT: This module has mock authentication. To use with auth module, modify users/dependencies.py to import from app.modules.auth.dependencies. See users/dependencies.py and users/models.py for integration instructions."
   }
 }

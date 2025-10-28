@@ -1,26 +1,31 @@
 """Authentication service layer for business logic."""
 
+import logging
+import os
+
 from .auth_utils import (
+    ACCESS_TOKEN_EXPIRES_MINUTES,
     create_access_token,
     create_refresh_token,
     verify_token,
-    ACCESS_TOKEN_EXPIRES_MINUTES
 )
 from .exceptions import (
     InvalidCredentialsError,
     InvalidTokenError,
     UserAlreadyExistsError,
-    UserNotFoundError
+    UserNotFoundError,
 )
 from .models import User, user_store
 from .schemas import LoginResponse, UserResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
     """Service class for authentication operations."""
 
     @staticmethod
-    def register_user(email: str, password: str, name: str) -> User:
+    async def register_user(email: str, password: str, name: str) -> User:
         """
         Register a new user.
 
@@ -42,7 +47,7 @@ class AuthService:
             raise
 
     @staticmethod
-    def login_user(email: str, password: str) -> LoginResponse:
+    async def login_user(email: str, password: str) -> LoginResponse:
         """
         Authenticate user and generate tokens.
 
@@ -82,7 +87,7 @@ class AuthService:
         )
 
     @staticmethod
-    def refresh_access_token(refresh_token: str) -> dict[str, str]:
+    async def refresh_access_token(refresh_token: str) -> dict[str, str]:
         """
         Refresh access token using refresh token.
 
@@ -123,11 +128,16 @@ class AuthService:
                 "expiresIn": ACCESS_TOKEN_EXPIRES_MINUTES * 60
             }
 
-        except Exception:
+        except InvalidTokenError:
+            # Re-raise known errors
+            raise
+        except Exception as e:
+            # Log unexpected errors for debugging
+            logger.error(f"Unexpected error during token refresh: {e}", exc_info=True)
             raise InvalidTokenError("Invalid or expired refresh token")
 
     @staticmethod
-    def request_password_reset(email: str) -> bool:
+    async def request_password_reset(email: str) -> bool:
         """
         Generate password reset token for user.
 
@@ -144,13 +154,21 @@ class AuthService:
         token = user_store.generate_reset_token(email)
         if token:
             # TODO: Send email with reset link containing the token
-            # For now, just log it (remove in production!)
-            print(f"Password reset token for {email}: {token}")
+            # In development mode only, log the token (NEVER in production!)
+            environment = os.getenv("ENVIRONMENT", "production").lower()
+            if environment == "development":
+                logger.warning(
+                    f"DEV MODE: Password reset token for {email}: {token}\n"
+                    f"Reset link: /reset-password?token={token}"
+                )
+            else:
+                # In production, just log that email was sent without exposing token
+                logger.info(f"Password reset email sent to {email}")
             return True
         return False
 
     @staticmethod
-    def reset_password(token: str, new_password: str) -> bool:
+    async def reset_password(token: str, new_password: str) -> bool:
         """
         Reset password using reset token.
 
@@ -170,7 +188,7 @@ class AuthService:
         return True
 
     @staticmethod
-    def change_password(
+    async def change_password(
         user_id: str,
         current_password: str,
         new_password: str

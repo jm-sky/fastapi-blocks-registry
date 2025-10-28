@@ -7,7 +7,7 @@ from .exceptions import (
     InvalidCredentialsError,
     InvalidTokenError,
     UserAlreadyExistsError,
-    UserNotFoundError
+    UserNotFoundError,
 )
 from .schemas import (
     ChangePasswordRequest,
@@ -18,7 +18,7 @@ from .schemas import (
     TokenRefresh,
     UserLogin,
     UserRegister,
-    UserResponse
+    UserResponse,
 )
 from .service import AuthService
 
@@ -36,7 +36,7 @@ router = APIRouter()
 async def register(user_data: UserRegister) -> UserResponse:
     """Register a new user."""
     try:
-        user = AuthService.register_user(
+        user = await AuthService.register_user(
             email=user_data.email,
             password=user_data.password,
             name=user_data.name
@@ -58,7 +58,7 @@ async def register(user_data: UserRegister) -> UserResponse:
 async def login(credentials: UserLogin) -> LoginResponse:
     """Login user and return tokens."""
     try:
-        return AuthService.login_user(
+        return await AuthService.login_user(
             email=credentials.email,
             password=credentials.password
         )
@@ -79,7 +79,7 @@ async def login(credentials: UserLogin) -> LoginResponse:
 async def refresh_token(token_data: TokenRefresh) -> dict:
     """Refresh access token."""
     try:
-        return AuthService.refresh_access_token(token_data.refreshToken)
+        return await AuthService.refresh_access_token(token_data.refreshToken)
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -97,7 +97,7 @@ async def refresh_token(token_data: TokenRefresh) -> dict:
 async def forgot_password(request: ForgotPasswordRequest) -> MessageResponse:
     """Request password reset."""
     # Always return success message to prevent email enumeration
-    AuthService.request_password_reset(request.email)
+    await AuthService.request_password_reset(request.email)
     return MessageResponse(
         message="If the email exists, a password reset link has been sent"
     )
@@ -112,7 +112,7 @@ async def forgot_password(request: ForgotPasswordRequest) -> MessageResponse:
 async def reset_password(request: ResetPasswordRequest) -> MessageResponse:
     """Reset password with token."""
     try:
-        AuthService.reset_password(request.token, request.newPassword)
+        await AuthService.reset_password(request.token, request.newPassword)
         return MessageResponse(message="Password has been reset successfully")
     except InvalidTokenError:
         raise HTTPException(
@@ -133,7 +133,7 @@ async def change_password(
 ) -> MessageResponse:
     """Change password for authenticated user."""
     try:
-        AuthService.change_password(
+        await AuthService.change_password(
             user_id=current_user.id,
             current_password=request.currentPassword,
             new_password=request.newPassword
