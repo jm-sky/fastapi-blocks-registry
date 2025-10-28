@@ -19,7 +19,7 @@
       "PASSWORD_RESET_TOKEN_EXPIRES_HOURS": "1"
     },
     "settings_class": "AuthSettings",
-    "router_prefix": "/api/v1/auth",
+    "router_prefix": "/auth",
     "tags": ["Authentication"],
     "author": "FastAPI Blocks Registry",
     "repository": "https://github.com/yourusername/fastapi-blocks-registry"
@@ -33,7 +33,7 @@
     "python_version": ">=3.12",
     "env": {},
     "settings_class": "UserSettings",
-    "router_prefix": "/api/v1/users",
+    "router_prefix": "/users",
     "tags": ["Users"],
     "author": "FastAPI Blocks Registry",
     "repository": "https://github.com/yourusername/fastapi-blocks-registry"
