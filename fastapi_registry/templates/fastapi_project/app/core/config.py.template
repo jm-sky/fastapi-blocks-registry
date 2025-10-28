@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # Project Information
     PROJECT_NAME: str = "FastAPI Application"
     PROJECT_DESCRIPTION: str = "A FastAPI application"
-    VERSION: str = "0.1.1"
+    VERSION: str = "0.1.2"
     ENVIRONMENT: str = "development"
 
     # API Configuration
