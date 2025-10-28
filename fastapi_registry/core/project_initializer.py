@@ -88,6 +88,9 @@ class ProjectInitializer:
             project_path / "app",
             project_path / "app" / "core",
             project_path / "app" / "modules",
+            project_path / "app" / "api",
+            project_path / "app" / "exceptions",
+            project_path / "tests",
         ]
 
         for directory in directories:
@@ -109,13 +112,33 @@ class ProjectInitializer:
             ".gitignore.template": project_path / ".gitignore",
             ".flake8.template": project_path / ".flake8",
             ".pylintrc.template": project_path / ".pylintrc",
+            "mypy.ini.template": project_path / "mypy.ini",
             "pyproject.toml.template": project_path / "pyproject.toml",
             "README.md.template": project_path / "README.md",
+            # App structure
             "app/__init__.py.template": project_path / "app" / "__init__.py",
+            # Core
             "app/core/__init__.py.template": project_path / "app" / "core" / "__init__.py",
             "app/core/config.py.template": project_path / "app" / "core" / "config.py",
             "app/core/database.py.template": project_path / "app" / "core" / "database.py",
+            "app/core/app_factory.py.template": project_path / "app" / "core" / "app_factory.py",
+            "app/core/middleware.py.template": project_path / "app" / "core" / "middleware.py",
+            "app/core/limiter.py.template": project_path / "app" / "core" / "limiter.py",
+            "app/core/static.py.template": project_path / "app" / "core" / "static.py",
+            "app/core/logging_config.py.template": project_path / "app" / "core" / "logging_config.py",
+            # API
+            "app/api/__init__.py.template": project_path / "app" / "api" / "__init__.py",
+            "app/api/router.py.template": project_path / "app" / "api" / "router.py",
+            # Exceptions
+            "app/exceptions/__init__.py.template": project_path / "app" / "exceptions" / "__init__.py",
+            "app/exceptions/custom_exceptions.py.template": project_path / "app" / "exceptions" / "custom_exceptions.py",
+            "app/exceptions/exception_handler.py.template": project_path / "app" / "exceptions" / "exception_handler.py",
+            # Modules
             "app/modules/__init__.py.template": project_path / "app" / "modules" / "__init__.py",
+            # Tests
+            "tests/__init__.py.template": project_path / "tests" / "__init__.py",
+            "tests/conftest.py.template": project_path / "tests" / "conftest.py",
+            "tests/test_main.py.template": project_path / "tests" / "test_main.py",
         }
 
         for template_name, dest_path in templates.items():

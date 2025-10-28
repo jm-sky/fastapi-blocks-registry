@@ -371,6 +371,7 @@ def init(
             ".gitignore",
             ".flake8",
             ".pylintrc",
+            "mypy.ini",
             "pyproject.toml",
             "README.md",
             "app/",
@@ -381,6 +382,10 @@ def init(
             "    database.py",
             "  modules/",
             "    __init__.py",
+            "tests/",
+            "  __init__.py",
+            "  conftest.py",
+            "  test_main.py",
         ]
         for file in files:
             console.print(f"  [dim]•[/dim] {file}")

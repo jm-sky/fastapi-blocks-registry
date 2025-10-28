@@ -1,6 +1,6 @@
 """Application configuration using Pydantic Settings."""
 
-from typing import List
+from typing import List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,63 +11,65 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=True,
+        case_sensitive=False,
         extra="ignore",
     )
 
-    # Project Information
-    PROJECT_NAME: str = "FastAPI Application"
-    PROJECT_DESCRIPTION: str = "A FastAPI application"
-    VERSION: str = "0.1.2"
-    ENVIRONMENT: str = "development"
+    # Application Information
+    app_name: str = "{project_name}"
+    app_description: str = "{project_description}"
+    app_version: str = "0.1.0"
+    environment: str = "development"
+    debug: bool = True
+
+    # Server Configuration
+    host: str = "0.0.0.0"
+    port: int = 8000
+    reload: bool = True
 
     # API Configuration
-    API_V1_PREFIX: str = "/api/v1"
+    api_v1_prefix: str = "/api/v1"
 
     # CORS Configuration
-    CORS_ORIGINS: str = "http://localhost:3000"
+    cors_origins: Union[str, List[str]] = "http://localhost:3000,http://localhost:5173"
+    cors_allow_credentials: bool = True
+    cors_allow_methods: Union[str, List[str]] = "*"
+    cors_allow_headers: Union[str, List[str]] = "*"
 
-    @property
-    def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins from comma-separated string."""
-        if isinstance(self.CORS_ORIGINS, str):
-            return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
-        return [self.CORS_ORIGINS]
+    @field_validator("cors_origins", "cors_allow_methods", "cors_allow_headers", mode="before")
+    @classmethod
+    def parse_cors_list(cls, v: Union[str, List[str]]) -> List[str]:
+        """Parse CORS configuration from string or list."""
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",") if item.strip()]
+        return v
 
     # Database Configuration
-    DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
+    database_url: str = "sqlite+aiosqlite:///./app.db"
 
     # Security
-    SECRET_KEY: str = "your-secret-key-here-change-in-production"
+    secret_key: str = "{secret_key}"
 
-    @field_validator("SECRET_KEY")
+    @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
         """Validate that secret key is strong enough."""
         if len(v) < 32:
             raise ValueError("SECRET_KEY must be at least 32 characters long")
-        if v == "your-secret-key-here-change-in-production":
-            import warnings
-            warnings.warn(
-                "WARNING: You are using the default SECRET_KEY. "
-                "Please change it in production!",
-                UserWarning,
-                stacklevel=2
-            )
         return v
 
     # Logging
-    LOG_LEVEL: str = "INFO"
+    log_level: str = "INFO"
 
     @property
     def is_development(self) -> bool:
         """Check if running in development mode."""
-        return self.ENVIRONMENT.lower() in ("development", "dev", "local")
+        return self.environment.lower() in ("development", "dev", "local")
 
     @property
     def is_production(self) -> bool:
         """Check if running in production mode."""
-        return self.ENVIRONMENT.lower() in ("production", "prod")
+        return self.environment.lower() in ("production", "prod")
 
 
 # Create settings instance

@@ -285,3 +285,4 @@ fastapi-blocks-registry/
 - [Typer Documentation](https://typer.tiangolo.com/)
 - [SQLAlchemy 2.0 Documentation](https://docs.sqlalchemy.org/)
 - [shadcn-vue](https://github.com/shadcn-ui/ui) - Inspiration for this project
+- Zapamiętaj aby aktywować Pythons virtual environment z katalogu .venv
