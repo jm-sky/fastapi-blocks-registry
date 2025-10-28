@@ -12,6 +12,7 @@ from rich import print as rprint
 from fastapi_registry.core.registry_manager import RegistryManager
 from fastapi_registry.core.installer import ModuleInstaller
 from fastapi_registry.core.project_initializer import ProjectInitializer
+from fastapi_registry import __version__
 
 # Initialize Typer app
 app = typer.Typer(
@@ -20,12 +21,36 @@ app = typer.Typer(
     add_completion=True,
 )
 
+
+def version_callback(value: bool) -> None:
+    """Show version information."""
+    if value:
+        from fastapi_registry import __description__
+        rprint(f"\n[bold cyan]FastAPI Blocks Registry[/bold cyan] [yellow]v{__version__}[/yellow]")
+        rprint(f"[dim]{__description__}[/dim]\n")
+        raise typer.Exit()
+
 # Initialize Rich console
 console = Console()
 
 # Get the path to the registry.json file
 REGISTRY_PATH = Path(__file__).parent / "registry.json"
 TEMPLATES_PATH = Path(__file__).parent / "templates"
+
+
+@app.callback()
+def common_options(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-v",
+        help="Show version information",
+        callback=version_callback,
+        is_eager=True,
+    )
+) -> None:
+    """FastAPI Blocks Registry - Modular scaffolding system for FastAPI backends."""
+    pass
 
 
 @app.command()
