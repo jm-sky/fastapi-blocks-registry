@@ -1,0 +1,49 @@
+"""FastAPI application factory."""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
+
+from app.core.config import settings
+from app.core.middleware import setup_middleware
+from app.core.limiter import setup_limiter
+from app.core.static import setup_static_routes, router as static_router
+from app.api.router import api_router
+from app.exceptions.exception_handler import (
+    http_exception_handler,
+    validation_exception_handler,
+)
+
+
+def create_app() -> FastAPI:
+    """
+    Create and configure FastAPI application.
+
+    Returns:
+        Configured FastAPI application instance
+    """
+    app = FastAPI(
+        title=settings.app_name,
+        description=settings.app_description,
+        version=settings.app_version,
+        debug=settings.debug,
+    )
+
+    # Setup middleware (CORS, etc.)
+    setup_middleware(app)
+
+    # Setup rate limiting
+    setup_limiter(app)
+
+    # Register API routes
+    app.include_router(api_router, prefix="/api/v1")
+
+    # Setup static file serving (for SPA)
+    setup_static_routes(app)
+    app.include_router(static_router)
+
+    # Register exception handlers (order matters - most specific first)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore
+    app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore
+    app.add_exception_handler(Exception, http_exception_handler)  # type: ignore
+
+    return app

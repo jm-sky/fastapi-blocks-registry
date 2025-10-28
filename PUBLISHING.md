@@ -118,11 +118,17 @@ repository = https://test.pypi.org/legacy/
 
 ## Publishing New Versions
 
+### Version Management
+
+**✨ Single Source of Truth**: The version is now automatically read from `pyproject.toml` using `importlib.metadata`. You only need to update the version in **ONE place**:
+
 1. **Update Version Number**:
-   Edit `pyproject.toml`:
+   Edit `pyproject.toml` (line 7):
    ```toml
    version = "0.2.0"
    ```
+
+   That's it! The `__version__` in `fastapi_registry/__init__.py` automatically reads from package metadata.
 
 2. **Update CHANGELOG** (create if needed):
    Document what changed
