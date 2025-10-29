@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fastapi-blocks-registry"
-version = "0.1.4"
+version = "0.1.5"
 description = "A modular scaffolding system for FastAPI backends"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -57,7 +57,12 @@ include = ["fastapi_registry*"]
 exclude = ["tests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-fastapi_registry = ["registry.json", "modules/**/*", "templates/**/*"]
+fastapi_registry = [
+    "registry.json",
+    "modules/**/*",
+    "templates/**/*",
+    "templates/fastapi_project/.*"
+]
 
 [tool.black]
 line-length = 88

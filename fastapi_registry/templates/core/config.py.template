@@ -73,11 +73,14 @@ class Settings(BaseSettings):
         description="Secret key for JWT",
     )
     jwt_algorithm: str = Field(default="HS256", description="JWT algorithm")
-    access_token_expire_minutes: int = Field(
+    access_token_expires_minutes: int = Field(
         default=30, description="Access token expiration (minutes)"
     )
-    refresh_token_expire_days: int = Field(
+    refresh_token_expires_days: int = Field(
         default=7, description="Refresh token expiration (days)"
+    )
+    password_reset_token_expires_hours: int = Field(
+        default=1, description="Password reset token expiration (hours)"
     )
 
     # Logging Settings

@@ -5,3 +5,4 @@ include pyproject.toml
 recursive-include fastapi_registry *.json
 recursive-include fastapi_registry/modules *.py
 recursive-include fastapi_registry/templates *
+recursive-include fastapi_registry/templates/fastapi_project .*
