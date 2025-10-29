@@ -104,6 +104,9 @@ class ProjectInitializer:
             project_path: Root project path
             template_vars: Dictionary of template variables for substitution
         """
+        # Get the base templates path (parent of fastapi_project)
+        core_templates_path = self.templates_path.parent / "core"
+        
         # Map of template files to destination paths
         templates = {
             "main.py.template": project_path / "main.py",
@@ -117,15 +120,6 @@ class ProjectInitializer:
             "README.md.template": project_path / "README.md",
             # App structure
             "app/__init__.py.template": project_path / "app" / "__init__.py",
-            # Core
-            "app/core/__init__.py.template": project_path / "app" / "core" / "__init__.py",
-            "app/core/config.py.template": project_path / "app" / "core" / "config.py",
-            "app/core/database.py.template": project_path / "app" / "core" / "database.py",
-            "app/core/app_factory.py.template": project_path / "app" / "core" / "app_factory.py",
-            "app/core/middleware.py.template": project_path / "app" / "core" / "middleware.py",
-            "app/core/limiter.py.template": project_path / "app" / "core" / "limiter.py",
-            "app/core/static.py.template": project_path / "app" / "core" / "static.py",
-            "app/core/logging_config.py.template": project_path / "app" / "core" / "logging_config.py",
             # API
             "app/api/__init__.py.template": project_path / "app" / "api" / "__init__.py",
             "app/api/router.py.template": project_path / "app" / "api" / "router.py",
@@ -140,9 +134,43 @@ class ProjectInitializer:
             "tests/conftest.py.template": project_path / "tests" / "conftest.py",
             "tests/test_main.py.template": project_path / "tests" / "test_main.py",
         }
+        
+        # Core templates from shared templates/core/ directory
+        core_templates = {
+            "__init__.py.template": project_path / "app" / "core" / "__init__.py",
+            "config.py.template": project_path / "app" / "core" / "config.py",
+            "database.py.template": project_path / "app" / "core" / "database.py",
+            "app_factory.py.template": project_path / "app" / "core" / "app_factory.py",
+            "middleware.py.template": project_path / "app" / "core" / "middleware.py",
+            "limiter.py.template": project_path / "app" / "core" / "limiter.py",
+            "static.py.template": project_path / "app" / "core" / "static.py",
+            "logging_config.py.template": project_path / "app" / "core" / "logging_config.py",
+        }
 
+        # Copy templates from fastapi_project directory
         for template_name, dest_path in templates.items():
             template_path = self.templates_path / template_name
+
+            if not template_path.exists():
+                # Skip if template doesn't exist (optional templates)
+                continue
+
+            # Read template content
+            with open(template_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            # Replace variables in content
+            for key, value in template_vars.items():
+                content = content.replace(f"{{{key}}}", value)
+
+            # Write to destination
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(dest_path, "w", encoding="utf-8") as f:
+                f.write(content)
+        
+        # Copy core templates from shared templates/core/ directory
+        for template_name, dest_path in core_templates.items():
+            template_path = core_templates_path / template_name
 
             if not template_path.exists():
                 # Skip if template doesn't exist (optional templates)

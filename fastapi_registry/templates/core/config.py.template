@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     )
 
     # Application Settings
-    app_name: str = Field(default="{{ project_name }}", description="Application name")
+    app_name: str = Field(default="{project_name}", description="Application name")
     environment: Environment = Field(
         default=Environment.DEVELOPMENT, description="Application environment"
     )
