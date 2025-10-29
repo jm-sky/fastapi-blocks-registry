@@ -51,6 +51,12 @@ fastapi-registry remove auth
 
 ### What Gets Installed
 
+When you initialize a project, the CLI creates:
+- ✅ Complete FastAPI project structure with `app/` directory
+- ✅ Backend documentation in `app/README.md` (architecture, patterns, best practices)
+- ✅ Configuration files (`.env`, `requirements.txt`, `pyproject.toml`)
+- ✅ Core utilities (`config.py`, `database.py`, middleware)
+
 When you add a module, the CLI automatically:
 - ✅ Copies module files to `app/modules/<module>/`
 - ✅ Updates `main.py` to register the router
@@ -95,16 +101,20 @@ fastapi-blocks-registry/
 │   │   ├── file_utils.py       # File operations
 │   │   ├── installer.py        # Module installer
 │   │   └── registry_manager.py # Registry management
-│   └── modules/
-│       └── auth/               # Auth module
-│           ├── __init__.py
-│           ├── models.py       # User model & store
-│           ├── schemas.py      # Pydantic schemas
-│           ├── router.py       # FastAPI routes
-│           ├── service.py      # Business logic
-│           ├── dependencies.py # FastAPI dependencies
-│           ├── auth_utils.py   # JWT & password utils
-│           └── exceptions.py   # Custom exceptions
+│   ├── modules/
+│   │   └── auth/               # Auth module
+│   │       ├── __init__.py
+│   │       ├── models.py       # User model & store
+│   │       ├── schemas.py      # Pydantic schemas
+│   │       ├── router.py       # FastAPI routes
+│   │       ├── service.py      # Business logic
+│   │       ├── dependencies.py # FastAPI dependencies
+│   │       ├── auth_utils.py   # JWT & password utils
+│   │       └── exceptions.py   # Custom exceptions
+│   └── templates/              # Project templates
+│       └── fastapi_project/
+│           └── app/
+│               └── README.md   # Backend documentation (copied to projects)
 ├── tests/
 ├── docs/
 ├── CLAUDE.md                   # Development guidelines
@@ -224,12 +234,13 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
 ### `fastapi-registry init`
 Initialize a new FastAPI project with proper structure:
 - Creates `main.py` with FastAPI app setup
-- Sets up `app/` directory structure
+- Sets up `app/` directory structure with backend-specific documentation
 - Creates `app/core/` with config and database utilities
 - Creates `app/modules/` for your modules
 - Generates `requirements.txt` with essential dependencies
 - Creates `.env` with default configuration
 - Adds `.gitignore`, `README.md`, and development config files
+- Includes `app/README.md` with backend architecture documentation
 - Includes code quality tools config (`.flake8`, `.pylintrc`, `pyproject.toml`)
 
 **Options:**

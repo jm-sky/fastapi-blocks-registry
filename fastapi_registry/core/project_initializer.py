@@ -120,6 +120,7 @@ class ProjectInitializer:
             "README.md.template": project_path / "README.md",
             # App structure
             "app/__init__.py.template": project_path / "app" / "__init__.py",
+            "app/README.md.template": project_path / "app" / "README.md",
             # API
             "app/api/__init__.py.template": project_path / "app" / "api" / "__init__.py",
             "app/api/router.py.template": project_path / "app" / "api" / "router.py",
