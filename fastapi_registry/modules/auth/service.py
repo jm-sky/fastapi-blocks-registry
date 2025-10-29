@@ -3,8 +3,8 @@
 import logging
 import os
 
+from ...core.config import settings
 from .auth_utils import (
-    ACCESS_TOKEN_EXPIRES_MINUTES,
     create_access_token,
     create_refresh_token,
     verify_token,
@@ -83,7 +83,7 @@ class AuthService:
             accessToken=access_token,
             refreshToken=refresh_token,
             tokenType="bearer",
-            expiresIn=ACCESS_TOKEN_EXPIRES_MINUTES * 60  # Convert to seconds
+            expiresIn=settings.access_token_expires_minutes * 60  # Convert to seconds
         )
 
     @staticmethod
@@ -125,7 +125,7 @@ class AuthService:
                 "accessToken": new_access_token,
                 "refreshToken": new_refresh_token,
                 "tokenType": "bearer",
-                "expiresIn": ACCESS_TOKEN_EXPIRES_MINUTES * 60
+                "expiresIn": settings.access_token_expires_minutes * 60
             }
 
         except InvalidTokenError:
