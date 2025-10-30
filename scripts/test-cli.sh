@@ -1,5 +1,29 @@
 #!/bin/bash
 # Test local installation of fastapi-blocks-registry
+#
+# This script performs a comprehensive test of the CLI by:
+# - Creating a test virtual environment
+# - Installing the package in editable mode
+# - Testing all CLI commands (list, info, init, add)
+# - Verifying project structure and file contents
+# - Checking template variable substitution
+# - Validating module installation
+#
+# Usage:
+#   ./scripts/test-cli.sh
+#
+# Example:
+#   cd /home/madeyskij/projects/private/fastapi-blocks-registry
+#   ./scripts/test-cli.sh
+#
+# The script will:
+# 1. Create temporary test environment
+# 2. Run all tests
+# 3. Clean up automatically on exit
+#
+# Exit codes:
+#   0 - All tests passed
+#   1 - One or more tests failed
 
 set -e  # Exit on error
 

@@ -54,3 +54,6 @@ wheels/
 # Logs
 *.log
 logs/
+
+# Test environment
+tmp-test*
