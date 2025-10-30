@@ -1,27 +1,28 @@
 """Project initialization utilities."""
 
 import secrets
+import shutil
 from pathlib import Path
-from typing import Optional
 
 
 class ProjectInitializer:
     """Handles initialization of new FastAPI projects."""
 
-    def __init__(self, templates_path: Path):
+    def __init__(self, base_path: Path):
         """
         Initialize project initializer.
 
         Args:
-            templates_path: Path to the templates directory
+            base_path: Base path to fastapi_registry package directory
         """
-        self.templates_path = templates_path / "fastapi_project"
+        self.example_project_path = base_path / "example_project"
+        self.templates_j2_path = base_path / "templates_j2"
 
     def init_project(
         self,
         project_path: Path,
-        project_name: Optional[str] = None,
-        project_description: Optional[str] = None,
+        project_name: str | None = None,
+        project_description: str | None = None,
         force: bool = False,
     ) -> None:
         """
@@ -35,12 +36,12 @@ class ProjectInitializer:
 
         Raises:
             FileExistsError: If project directory exists and force=False
-            ValueError: If templates not found
+            ValueError: If example_project not found
         """
-        # Validate templates exist
-        if not self.templates_path.exists():
+        # Validate example_project exists
+        if not self.example_project_path.exists():
             raise ValueError(
-                f"Templates directory not found: {self.templates_path}. "
+                f"Example project not found: {self.example_project_path}. "
                 "Package may be corrupted."
             )
 
@@ -50,8 +51,7 @@ class ProjectInitializer:
         # Check if directory is empty
         if any(project_path.iterdir()) and not force:
             raise FileExistsError(
-                f"Directory {project_path} is not empty. "
-                "Use --force to initialize anyway."
+                f"Directory {project_path} is not empty. " "Use --force to initialize anyway."
             )
 
         # Use directory name as project name if not provided
@@ -71,114 +71,111 @@ class ProjectInitializer:
             "secret_key": secret_key,
         }
 
-        # Create project structure
-        self._create_structure(project_path)
+        # Copy example_project structure (excluding modules which user will add)
+        self._copy_example_project(project_path, template_vars)
 
-        # Copy and process template files
-        self._copy_templates(project_path, template_vars)
-
-    def _create_structure(self, project_path: Path) -> None:
+    def _copy_example_project(self, project_path: Path, template_vars: dict) -> None:
         """
-        Create basic project directory structure.
+        Copy example_project structure to destination.
+
+        This copies all files from example_project/ except:
+        - Files that should be processed as templates (.j2 equivalents exist)
+        - Module directories (users add these with 'fastapi-registry add')
 
         Args:
-            project_path: Root project path
+            project_path: Destination path
+            template_vars: Variables for template substitution
         """
-        directories = [
-            project_path / "app",
-            project_path / "app" / "core",
-            project_path / "app" / "modules",
-            project_path / "app" / "api",
-            project_path / "app" / "exceptions",
-            project_path / "tests",
-        ]
-
-        for directory in directories:
-            directory.mkdir(parents=True, exist_ok=True)
-
-    def _copy_templates(self, project_path: Path, template_vars: dict) -> None:
-        """
-        Copy template files to project directory and process variables.
-
-        Args:
-            project_path: Root project path
-            template_vars: Dictionary of template variables for substitution
-        """
-        # Get the base templates path (parent of fastapi_project)
-        core_templates_path = self.templates_path.parent / "core"
-        
-        # Map of template files to destination paths
-        templates = {
-            "main.py.template": project_path / "main.py",
-            "requirements.txt.template": project_path / "requirements.txt",
-            "env.template": project_path / ".env",
-            ".gitignore.template": project_path / ".gitignore",
-            ".flake8.template": project_path / ".flake8",
-            ".pylintrc.template": project_path / ".pylintrc",
-            "mypy.ini.template": project_path / "mypy.ini",
-            "pyproject.toml.template": project_path / "pyproject.toml",
-            "README.md.template": project_path / "README.md",
-            # App structure
-            "app/__init__.py.template": project_path / "app" / "__init__.py",
-            "app/README.md.template": project_path / "app" / "README.md",
-            # API
-            "app/api/__init__.py.template": project_path / "app" / "api" / "__init__.py",
-            "app/api/router.py.template": project_path / "app" / "api" / "router.py",
-            # Exceptions
-            "app/exceptions/__init__.py.template": project_path / "app" / "exceptions" / "__init__.py",
-            "app/exceptions/custom_exceptions.py.template": project_path / "app" / "exceptions" / "custom_exceptions.py",
-            "app/exceptions/exception_handler.py.template": project_path / "app" / "exceptions" / "exception_handler.py",
-            # Modules
-            "app/modules/__init__.py.template": project_path / "app" / "modules" / "__init__.py",
-            # Tests
-            "tests/__init__.py.template": project_path / "tests" / "__init__.py",
-            "tests/conftest.py.template": project_path / "tests" / "conftest.py",
-            "tests/test_main.py.template": project_path / "tests" / "test_main.py",
-        }
-        
-        # Core templates from shared templates/core/ directory
-        core_templates = {
-            "__init__.py.template": project_path / "app" / "core" / "__init__.py",
-            "config.py.template": project_path / "app" / "core" / "config.py",
-            "database.py.template": project_path / "app" / "core" / "database.py",
-            "app_factory.py.template": project_path / "app" / "core" / "app_factory.py",
-            "middleware.py.template": project_path / "app" / "core" / "middleware.py",
-            "limiter.py.template": project_path / "app" / "core" / "limiter.py",
-            "static.py.template": project_path / "app" / "core" / "static.py",
-            "logging_config.py.template": project_path / "app" / "core" / "logging_config.py",
+        # Files that have .j2 template equivalents (will be processed separately)
+        templated_files = {
+            "README.md",  # -> templates_j2/README.md.j2
+            ".env",  # -> templates_j2/env.j2
+            "app/core/config.py",  # -> templates_j2/config.py.j2
         }
 
-        # Copy templates from fastapi_project directory
-        for template_name, dest_path in templates.items():
-            template_path = self.templates_path / template_name
+        # Directories to exclude (modules are added separately by users)
+        exclude_dirs = {
+            "app/modules/auth",
+            "app/modules/users",
+        }
 
-            if not template_path.exists():
-                # Skip if template doesn't exist (optional templates)
+        # Copy all files from example_project
+        for item in self.example_project_path.rglob("*"):
+            if not item.is_file():
                 continue
 
-            # Read template content
-            with open(template_path, "r", encoding="utf-8") as f:
-                content = f.read()
+            # Get relative path from example_project
+            rel_path = item.relative_to(self.example_project_path)
 
-            # Replace variables in content
-            for key, value in template_vars.items():
-                content = content.replace(f"{{{key}}}", value)
+            # Check if in excluded module directory
+            is_excluded = False
+            for exclude_dir in exclude_dirs:
+                if str(rel_path).startswith(exclude_dir):
+                    is_excluded = True
+                    break
 
-            # Write to destination
+            if is_excluded:
+                continue
+
+            dest_path = project_path / rel_path
+
+            # Skip if this file has a .j2 template version
+            if str(rel_path) in templated_files:
+                continue
+
+            # Create parent directory
             dest_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(dest_path, "w", encoding="utf-8") as f:
-                f.write(content)
-        
-        # Copy core templates from shared templates/core/ directory
-        for template_name, dest_path in core_templates.items():
-            template_path = core_templates_path / template_name
+
+            # Direct copy for non-template files
+            shutil.copy2(item, dest_path)
+
+        # Process .j2 templates
+        self._process_j2_templates(project_path, template_vars)
+
+        # Ensure empty modules directory exists
+        (project_path / "app" / "modules").mkdir(parents=True, exist_ok=True)
+
+        # Create __init__.py in modules if it doesn't exist
+        modules_init = project_path / "app" / "modules" / "__init__.py"
+        if not modules_init.exists():
+            with open(modules_init, "w", encoding="utf-8") as f:
+                f.write(
+                    '"""FastAPI modules package.\n\n'
+                    "This directory contains all application modules (features).\n"
+                    "Each module is self-contained with its own:\n"
+                    "- models.py (database models)\n"
+                    "- schemas.py (Pydantic request/response schemas)\n"
+                    "- router.py (API endpoints)\n"
+                    "- service.py (business logic)\n"
+                    "- dependencies.py (FastAPI dependencies)\n"
+                    "- exceptions.py (module-specific exceptions)\n"
+                    '"""\n'
+                )
+
+    def _process_j2_templates(self, project_path: Path, template_vars: dict) -> None:
+        """
+        Process .j2 template files and write to destination.
+
+        Args:
+            project_path: Destination path
+            template_vars: Variables for substitution
+        """
+        # Map of template files to destination paths
+        j2_templates = {
+            "README.md.j2": project_path / "README.md",
+            "env.j2": project_path / ".env",
+            "config.py.j2": project_path / "app" / "core" / "config.py",
+        }
+
+        for template_name, dest_path in j2_templates.items():
+            template_path = self.templates_j2_path / template_name
 
             if not template_path.exists():
                 # Skip if template doesn't exist (optional templates)
                 continue
 
             # Read template content
-            with open(template_path, "r", encoding="utf-8") as f:
+            with open(template_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Replace variables in content
@@ -201,5 +198,6 @@ class ProjectInitializer:
             True if valid, False otherwise
         """
         import re
+
         # Allow alphanumeric, underscore, hyphen
         return bool(re.match(r"^[a-zA-Z][a-zA-Z0-9_-]*$", name))

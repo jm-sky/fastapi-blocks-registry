@@ -4,22 +4,62 @@
 
 This is a modular scaffolding system for FastAPI backends, inspired by shadcn-vue. It allows developers to add complete, production-ready modules (like `auth`, `users`, `billing`) to their FastAPI projects with a single CLI command.
 
+## Architecture Overview (Updated 2025-10-30)
+
+This project uses a **Mirror Target Structure** approach where the registry structure mirrors the end-user project structure exactly. This enables:
+- Full IDE support (syntax highlighting, type checking, autocomplete)
+- Local testing of modules in example_project
+- Direct file copying without complex transformations
+- Clear understanding of where files will be placed
+
+### Registry Structure
+
+```
+fastapi-blocks-registry/
+├── fastapi_registry/
+│   ├── example_project/      # Complete working FastAPI project
+│   │   ├── main.py           # Real Python files (not templates!)
+│   │   ├── requirements.txt
+│   │   ├── app/
+│   │   │   ├── core/         # Core utilities (config, database, etc.)
+│   │   │   ├── modules/      # Feature modules
+│   │   │   │   ├── auth/     # ← Modules here (1:1 with target)
+│   │   │   │   └── users/
+│   │   │   ├── api/
+│   │   │   └── exceptions/
+│   │   └── tests/
+│   ├── templates_j2/         # ONLY files with variables
+│   │   ├── README.md.j2      # Has {project_name}
+│   │   ├── env.j2            # Has {secret_key}
+│   │   └── config.py.j2      # Has {project_name}
+│   ├── core/                 # CLI logic
+│   │   ├── installer.py
+│   │   ├── project_initializer.py
+│   │   └── registry_manager.py
+│   ├── cli.py
+│   └── registry.json
+```
+
+**Key Insight:** ~85% of files don't need templating! Only use `.j2` templates for files that truly need variable substitution.
+
 ## Architecture Principles
 
 ### 1. Module Structure
 Each module follows a consistent structure based on proven patterns from the saas-fastapi-react-boilerplate:
 
 ```
-modules/auth/
+example_project/app/modules/auth/
 ├── models.py          # SQLAlchemy models
 ├── schemas.py         # Pydantic schemas (request/response DTOs)
 ├── router.py          # FastAPI route handlers
 ├── service.py         # Business logic layer
 ├── dependencies.py    # FastAPI dependencies (DI)
 ├── exceptions.py      # Module-specific exceptions
-├── __init__.py        # Module initialization
-└── module.json        # Module metadata and configuration
+└── __init__.py        # Module initialization
 ```
+
+**Location in registry:** `fastapi_registry/example_project/app/modules/auth/`
+**Location in user project:** `{user_project}/app/modules/auth/` (1:1 match!)
 
 ### 2. Core Design Patterns
 
@@ -195,13 +235,14 @@ Each module must be:
 ## Development Workflow
 
 1. **Module Development**
-   - Create module in `fastapi_registry/modules/`
+   - Create module in `fastapi_registry/example_project/app/modules/`
    - Follow the standard module structure
    - Add tests in module directory
-   - Document in module README
+   - Test the module locally in example_project (can import and run!)
 
 2. **Registry Update**
    - Add module metadata to `registry.json`
+   - Update `path` to point to `example_project/app/modules/your_module`
    - Specify all dependencies and environment variables
    - Set appropriate version
 

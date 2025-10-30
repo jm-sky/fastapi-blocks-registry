@@ -3,7 +3,7 @@
     "name": "Authentication",
     "description": "JWT-based authentication with refresh tokens and user management",
     "version": "1.0.0",
-    "path": "modules/auth",
+    "path": "example_project/app/modules/auth",
     "dependencies": [
       "PyJWT>=2.10.0",
       "passlib[bcrypt]>=1.7.4",
@@ -28,7 +28,7 @@
     "name": "User Management",
     "description": "CRUD endpoints for user management with role-based access control",
     "version": "1.0.0",
-    "path": "modules/users",
+    "path": "example_project/app/modules/users",
     "dependencies": [],
     "module_dependencies": ["auth"],
     "python_version": ">=3.12",

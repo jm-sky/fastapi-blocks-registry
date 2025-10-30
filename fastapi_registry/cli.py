@@ -1,18 +1,17 @@
 """CLI for FastAPI Blocks Registry."""
 
 from pathlib import Path
-from typing import Optional
 
 import typer
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from rich import print as rprint
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
-from fastapi_registry.core.registry_manager import RegistryManager
+from fastapi_registry import __version__
 from fastapi_registry.core.installer import ModuleInstaller
 from fastapi_registry.core.project_initializer import ProjectInitializer
-from fastapi_registry import __version__
+from fastapi_registry.core.registry_manager import RegistryManager
 
 # Initialize Typer app
 app = typer.Typer(
@@ -26,21 +25,23 @@ def version_callback(value: bool) -> None:
     """Show version information."""
     if value:
         from fastapi_registry import __description__
+
         rprint(f"\n[bold cyan]FastAPI Blocks Registry[/bold cyan] [yellow]v{__version__}[/yellow]")
         rprint(f"[dim]{__description__}[/dim]\n")
         raise typer.Exit()
+
 
 # Initialize Rich console
 console = Console()
 
 # Get the path to the registry.json file
 REGISTRY_PATH = Path(__file__).parent / "registry.json"
-TEMPLATES_PATH = Path(__file__).parent / "templates"
+REGISTRY_BASE_PATH = Path(__file__).parent
 
 
 @app.callback()
 def common_options(
-    version: Optional[bool] = typer.Option(
+    version: bool | None = typer.Option(
         None,
         "--version",
         "-v",
@@ -55,11 +56,8 @@ def common_options(
 
 @app.command()
 def list(
-    search: Optional[str] = typer.Option(
-        None,
-        "--search",
-        "-s",
-        help="Search modules by name or description"
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Search modules by name or description"
     )
 ) -> None:
     """List all available modules in the registry."""
@@ -84,17 +82,10 @@ def list(
         table.add_column("Version", justify="center", style="yellow")
 
         for module_name, metadata in modules.items():
-            table.add_row(
-                module_name,
-                metadata.name,
-                metadata.description,
-                metadata.version
-            )
+            table.add_row(module_name, metadata.name, metadata.description, metadata.version)
 
         console.print(table)
-        console.print(
-            f"\n[dim]Total: {len(modules)} module(s)[/dim]\n"
-        )
+        console.print(f"\n[dim]Total: {len(modules)} module(s)[/dim]\n")
 
     except FileNotFoundError as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -147,11 +138,7 @@ def info(module_name: str) -> None:
         if module.repository:
             info_text += f"\n[dim]Repository: {module.repository}[/dim]"
 
-        panel = Panel(
-            info_text,
-            title=f"[bold]Module: {module_name}[/bold]",
-            border_style="cyan"
-        )
+        panel = Panel(info_text, title=f"[bold]Module: {module_name}[/bold]", border_style="cyan")
 
         console.print("\n")
         console.print(panel)
@@ -168,18 +155,10 @@ def info(module_name: str) -> None:
 @app.command()
 def add(
     module_name: str,
-    project_path: Optional[Path] = typer.Option(
-        None,
-        "--project-path",
-        "-p",
-        help="Path to FastAPI project (defaults to current directory)"
+    project_path: Path | None = typer.Option(
+        None, "--project-path", "-p", help="Path to FastAPI project (defaults to current directory)"
     ),
-    yes: bool = typer.Option(
-        False,
-        "--yes",
-        "-y",
-        help="Skip confirmation prompts"
-    )
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompts"),
 ) -> None:
     """Add a module to your FastAPI project."""
     try:
@@ -202,8 +181,7 @@ def add(
         # Ask for confirmation
         if not yes:
             confirm = typer.confirm(
-                f"Add '{module_name}' to project at {project_path}?",
-                default=True
+                f"Add '{module_name}' to project at {project_path}?", default=True
             )
             if not confirm:
                 console.print("[yellow]Cancelled.[/yellow]")
@@ -215,7 +193,9 @@ def add(
         with console.status(f"[bold green]Installing module '{module_name}'...", spinner="dots"):
             installer.install_module(module_name, project_path)
 
-        console.print(f"\n[bold green]✓[/bold green] Module '{module_name}' installed successfully!\n")
+        console.print(
+            f"\n[bold green]✓[/bold green] Module '{module_name}' installed successfully!\n"
+        )
 
         # Show next steps
         console.print("[bold]Next steps:[/bold]")
@@ -239,18 +219,10 @@ def add(
 @app.command()
 def remove(
     module_name: str,
-    project_path: Optional[Path] = typer.Option(
-        None,
-        "--project-path",
-        "-p",
-        help="Path to FastAPI project (defaults to current directory)"
+    project_path: Path | None = typer.Option(
+        None, "--project-path", "-p", help="Path to FastAPI project (defaults to current directory)"
     ),
-    yes: bool = typer.Option(
-        False,
-        "--yes",
-        "-y",
-        help="Skip confirmation prompts"
-    )
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompts"),
 ) -> None:
     """Remove a module from your FastAPI project."""
     try:
@@ -266,12 +238,11 @@ def remove(
 
         # Ask for confirmation
         if not yes:
-            console.print("[yellow]Warning:[/yellow] This will remove the module directory and its contents.")
-            console.print(f"[dim]Path: {module_path}[/dim]\n")
-            confirm = typer.confirm(
-                f"Remove module '{module_name}'?",
-                default=False
+            console.print(
+                "[yellow]Warning:[/yellow] This will remove the module directory and its contents."
             )
+            console.print(f"[dim]Path: {module_path}[/dim]\n")
+            confirm = typer.confirm(f"Remove module '{module_name}'?", default=False)
             if not confirm:
                 console.print("[yellow]Cancelled.[/yellow]")
                 raise typer.Exit(0)
@@ -283,6 +254,7 @@ def remove(
         console.print("  • Remove environment variables from .env\n")
 
         import shutil
+
         shutil.rmtree(module_path)
 
         console.print(f"[bold green]✓[/bold green] Module '{module_name}' removed successfully!\n")
@@ -294,30 +266,19 @@ def remove(
 
 @app.command()
 def init(
-    project_path: Optional[Path] = typer.Option(
+    project_path: Path | None = typer.Option(
         None,
         "--project-path",
         "-p",
-        help="Path to create FastAPI project (defaults to current directory)"
+        help="Path to create FastAPI project (defaults to current directory)",
     ),
-    name: Optional[str] = typer.Option(
-        None,
-        "--name",
-        "-n",
-        help="Project name (defaults to directory name)"
+    name: str | None = typer.Option(
+        None, "--name", "-n", help="Project name (defaults to directory name)"
     ),
-    description: Optional[str] = typer.Option(
-        None,
-        "--description",
-        "-d",
-        help="Project description"
-    ),
+    description: str | None = typer.Option(None, "--description", "-d", help="Project description"),
     force: bool = typer.Option(
-        False,
-        "--force",
-        "-f",
-        help="Initialize even if directory is not empty"
-    )
+        False, "--force", "-f", help="Initialize even if directory is not empty"
+    ),
 ) -> None:
     """Initialize a new FastAPI project structure."""
     try:
@@ -328,7 +289,7 @@ def init(
         project_path = project_path.resolve()
 
         # Validate project name if provided
-        initializer = ProjectInitializer(TEMPLATES_PATH)
+        initializer = ProjectInitializer(REGISTRY_BASE_PATH)
         if name and not initializer.validate_project_name(name):
             console.print(
                 "[red]Error:[/red] Invalid project name. "
@@ -407,7 +368,9 @@ def init(
         console.print("  1. Review and update [cyan].env[/cyan] with your configuration")
         console.print("  2. Create a virtual environment:")
         console.print("     [cyan]python -m venv venv[/cyan]")
-        console.print("     [cyan]source venv/bin/activate[/cyan]  [dim]# On Windows: venv\\Scripts\\activate[/dim]")
+        console.print(
+            "     [cyan]source venv/bin/activate[/cyan]  [dim]# On Windows: venv\\Scripts\\activate[/dim]"
+        )
         console.print("  3. Install dependencies:")
         console.print("     [cyan]pip install -r requirements.txt[/cyan]")
         console.print("  4. Add modules to your project:")
@@ -426,6 +389,7 @@ def init(
     except Exception as e:
         console.print(f"[red]Unexpected error:[/red] {e}")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         raise typer.Exit(1)
 
@@ -433,7 +397,7 @@ def init(
 @app.command()
 def version() -> None:
     """Show version information."""
-    from fastapi_registry import __version__, __description__
+    from fastapi_registry import __description__, __version__
 
     rprint("\n[bold cyan]FastAPI Blocks Registry[/bold cyan]")
     rprint(f"[dim]{__description__}[/dim]")
