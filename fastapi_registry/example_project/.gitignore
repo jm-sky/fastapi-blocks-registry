@@ -53,6 +53,7 @@ htmlcov/
 # Logs
 *.log
 logs/
+!app/modules/logs
 
 # Alembic
 # Uncomment if you want to ignore migration files

@@ -54,6 +54,7 @@ wheels/
 # Logs
 *.log
 logs/
+!fastapi_registry/example_project/app/modules/logs
 
 # Test environment
 tmp-test*
