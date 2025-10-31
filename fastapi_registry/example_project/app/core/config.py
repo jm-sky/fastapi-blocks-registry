@@ -1,4 +1,4 @@
-"""Application configuration using Pydantic Settings."""
+"""Application configuration using Pydantic Settings with modular structure."""
 
 from enum import Enum
 from functools import lru_cache
@@ -6,6 +6,15 @@ from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# Shared config for all nested settings
+_base_config = SettingsConfigDict(
+    env_file=".env",
+    env_file_encoding="utf-8",
+    case_sensitive=False,
+    extra="ignore"
+)
 
 
 class Environment(str, Enum):
@@ -17,110 +26,334 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 
-class Settings(BaseSettings):
-    """
-    Main application settings.
+class AppSettings(BaseSettings):
+    """Application configuration."""
 
-    All settings can be overridden via environment variables.
-    """
+    model_config = _base_config
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
+    name: str = Field(
+        default="FastAPI Example Project",
+        validation_alias="APP_NAME",
+        description="Application name"
     )
-
-    # Application Settings
-    app_name: str = Field(default="FastAPI Example Project", description="Application name")
+    version: str = Field(
+        default="0.1.2",
+        validation_alias="APP_VERSION",
+        description="Application version"
+    )
+    debug: bool = Field(
+        default=False,
+        validation_alias="DEBUG",
+        description="Debug mode"
+    )
     environment: Environment = Field(
-        default=Environment.DEVELOPMENT, description="Application environment"
+        default=Environment.DEVELOPMENT,
+        validation_alias="ENVIRONMENT",
+        description="Environment (local, development, test, production)"
     )
-    debug: bool = Field(default=False, description="Debug mode")
-    version: str = Field(default="0.1.2", description="Application version")
 
-    # Server Settings
-    host: str = Field(default="0.0.0.0", description="Server host")
-    port: int = Field(default=8000, description="Server port")
-    reload: bool = Field(default=True, description="Auto-reload on code changes")
+    @field_validator("environment")
+    @classmethod
+    def validate_environment(cls, v: Environment) -> Environment:
+        """Validate environment is one of allowed values."""
+        if v not in Environment:
+            allowed = {e.value for e in Environment}
+            raise ValueError(f"Environment must be one of {allowed}, got: {v}")
+        return v
 
-    # CORS Settings
+
+class ServerSettings(BaseSettings):
+    """Server configuration."""
+
+    model_config = _base_config
+
+    host: str = Field(
+        default="0.0.0.0",
+        validation_alias="HOST",
+        description="Server host"
+    )
+    port: int = Field(
+        default=8000,
+        validation_alias="PORT",
+        description="Server port"
+    )
+    reload: bool = Field(
+        default=True,
+        validation_alias="RELOAD",
+        description="Auto-reload on code changes"
+    )
     cors_origins: list[str] = Field(
         default=["http://localhost:3000"],
-        description="Allowed CORS origins",
+        validation_alias="CORS_ORIGINS",
+        description="Allowed CORS origins"
     )
-    cors_credentials: bool = Field(default=True, description="Allow credentials")
-    cors_methods: list[str] = Field(default=["*"], description="Allowed HTTP methods")
-    cors_headers: list[str] = Field(default=["*"], description="Allowed HTTP headers")
+    cors_credentials: bool = Field(
+        default=True,
+        validation_alias="CORS_CREDENTIALS",
+        description="Allow credentials"
+    )
+    cors_methods: list[str] = Field(
+        default=["*"],
+        validation_alias="CORS_METHODS",
+        description="Allowed HTTP methods"
+    )
+    cors_headers: list[str] = Field(
+        default=["*"],
+        validation_alias="CORS_HEADERS",
+        description="Allowed HTTP headers"
+    )
 
-    # Database Settings
-    database_url: str = Field(
+    @field_validator("port")
+    @classmethod
+    def validate_port(cls, v: int) -> int:
+        """Validate port is in valid range."""
+        if not 1 <= v <= 65535:
+            raise ValueError(f"Port must be between 1 and 65535, got: {v}")
+        return v
+
+
+class DatabaseSettings(BaseSettings):
+    """Database configuration."""
+
+    model_config = _base_config
+
+    url: str = Field(
         default="sqlite+aiosqlite:///./data/app.db",
-        description="Database connection URL",
+        validation_alias="DATABASE_URL",
+        description="Database connection URL"
     )
-    database_pool_size: int = Field(default=5, description="Database pool size")
-    database_max_overflow: int = Field(
-        default=10, description="Max database connections overflow"
+    pool_size: int = Field(
+        default=5,
+        validation_alias="DATABASE_POOL_SIZE",
+        description="Database connection pool size"
     )
-    database_pool_recycle: int = Field(
-        default=3600, description="Database pool recycle time (seconds)"
+    max_overflow: int = Field(
+        default=10,
+        validation_alias="DATABASE_MAX_OVERFLOW",
+        description="Max database connections overflow"
     )
-    database_echo: bool = Field(default=False, description="Echo SQL queries")
+    pool_recycle: int = Field(
+        default=3600,
+        validation_alias="DATABASE_POOL_RECYCLE",
+        description="Database pool recycle time (seconds)"
+    )
+    echo: bool = Field(
+        default=False,
+        validation_alias="DATABASE_ECHO",
+        description="Echo SQL queries"
+    )
 
-    # JWT Settings (if auth module is added)
+    @field_validator("url")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        """Validate database URL format."""
+        if not v:
+            raise ValueError("Database URL cannot be empty")
+        # Support both sqlite and postgresql
+        if not (v.startswith("sqlite") or v.startswith("postgresql")):
+            raise ValueError("Only SQLite and PostgreSQL databases are supported")
+        return v
+
+
+class SecuritySettings(BaseSettings):
+    """Security and authentication configuration."""
+
+    model_config = _base_config
+
     secret_key: str = Field(
         default="change-me-in-production-min-32-chars!",
-        description="Secret key for JWT",
+        validation_alias="SECRET_KEY",
+        description="Secret key for JWT and other crypto operations"
     )
-    jwt_algorithm: str = Field(default="HS256", description="JWT algorithm")
+    jwt_algorithm: str = Field(
+        default="HS256",
+        validation_alias="JWT_ALGORITHM",
+        description="JWT signing algorithm"
+    )
     access_token_expires_minutes: int = Field(
-        default=30, description="Access token expiration (minutes)"
+        default=30,
+        validation_alias="ACCESS_TOKEN_EXPIRES_MINUTES",
+        description="Access token expiration in minutes"
     )
     refresh_token_expires_days: int = Field(
-        default=7, description="Refresh token expiration (days)"
+        default=7,
+        validation_alias="REFRESH_TOKEN_EXPIRES_DAYS",
+        description="Refresh token expiration in days"
     )
     password_reset_token_expires_hours: int = Field(
-        default=1, description="Password reset token expiration (hours)"
-    )
-
-    # Logging Settings
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
-        default="INFO", description="Logging level"
-    )
-    log_format: str = Field(
-        default="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
-        description="Log format",
-    )
-    log_file: str | None = Field(default=None, description="Log file path")
-
-    # Rate Limiting
-    rate_limit_enabled: bool = Field(default=True, description="Enable rate limiting")
-    rate_limit_per_minute: int = Field(
-        default=60, description="Default rate limit per minute"
+        default=1,
+        validation_alias="PASSWORD_RESET_TOKEN_EXPIRES_HOURS",
+        description="Password reset token expiration in hours"
     )
 
     @field_validator("secret_key")
     @classmethod
-    def validate_secret_key(cls, v: str, info) -> str:
-        """Validate secret key in production."""
-        if info.data.get("environment") == Environment.PRODUCTION:
-            if len(v) < 32:
-                raise ValueError("Secret key must be at least 32 characters in production")
-            if v == "change-me-in-production-min-32-chars!":
-                raise ValueError("Must change default secret key in production")
+    def validate_secret_key(cls, v: str) -> str:
+        """Validate secret key strength and security."""
+        if "change-me" in v.lower() or "change-this" in v.lower():
+            raise ValueError(
+                "Secret key must be changed from default value in production. "
+                "Set SECRET_KEY environment variable with a secure random string."
+            )
+
+        if len(v) < 32:
+            raise ValueError(
+                "Secret key must be at least 32 characters long for security. "
+                "Use a cryptographically secure random string."
+            )
+
+        # Check for basic entropy (not all same character)
+        if len(set(v)) < 8:
+            raise ValueError(
+                "Secret key must have sufficient entropy. "
+                "Use a truly random string with varied characters."
+            )
+
         return v
 
+
+class RateLimitSettings(BaseSettings):
+    """Rate limiting configuration."""
+
+    model_config = _base_config
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias="RATE_LIMIT_ENABLED",
+        description="Enable rate limiting"
+    )
+    default_per_minute: int = Field(
+        default=60,
+        validation_alias="RATE_LIMIT_DEFAULT_PER_MINUTE",
+        description="Default rate limit per minute"
+    )
+    default_per_hour: int = Field(
+        default=1000,
+        validation_alias="RATE_LIMIT_DEFAULT_PER_HOUR",
+        description="Default rate limit per hour"
+    )
+    auth_register: str = Field(
+        default="5/minute",
+        validation_alias="AUTH_REGISTER_RATE_LIMIT",
+        description="Registration rate limit"
+    )
+    auth_login: str = Field(
+        default="10/minute",
+        validation_alias="AUTH_LOGIN_RATE_LIMIT",
+        description="Login rate limit"
+    )
+    auth_refresh: str = Field(
+        default="20/minute",
+        validation_alias="AUTH_REFRESH_RATE_LIMIT",
+        description="Token refresh rate limit"
+    )
+    auth_password_change: str = Field(
+        default="3/minute",
+        validation_alias="AUTH_PASSWORD_CHANGE_RATE_LIMIT",
+        description="Password change rate limit"
+    )
+
+
+class LoggingSettings(BaseSettings):
+    """Logging configuration."""
+
+    model_config = _base_config
+
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        default="INFO",
+        validation_alias="LOG_LEVEL",
+        description="Logging level"
+    )
+    format: str = Field(
+        default="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+        validation_alias="LOG_FORMAT",
+        description="Log format"
+    )
+    file: str | None = Field(
+        default=None,
+        validation_alias="LOG_FILE",
+        description="Log file path"
+    )
+
+
+class RecaptchaSettings(BaseSettings):
+    """Google reCAPTCHA v3 configuration."""
+
+    model_config = _base_config
+
+    enabled: bool = Field(
+        default=False,
+        validation_alias="RECAPTCHA_ENABLED",
+        description="Enable reCAPTCHA verification (optional security feature)"
+    )
+    secret_key: str = Field(
+        default="",
+        validation_alias="RECAPTCHA_SECRET_KEY",
+        description="Google reCAPTCHA v3 secret key"
+    )
+    site_key: str = Field(
+        default="",
+        validation_alias="RECAPTCHA_SITE_KEY",
+        description="Google reCAPTCHA v3 site key (for frontend)"
+    )
+    min_score: float = Field(
+        default=0.5,
+        validation_alias="RECAPTCHA_MIN_SCORE",
+        description="Minimum reCAPTCHA score to accept (0.0-1.0)"
+    )
+    verify_url: str = Field(
+        default="https://www.google.com/recaptcha/api/siteverify",
+        validation_alias="RECAPTCHA_VERIFY_URL",
+        description="reCAPTCHA verification endpoint"
+    )
+
+    @field_validator("min_score")
+    @classmethod
+    def validate_min_score(cls, v: float) -> float:
+        """Validate reCAPTCHA score is in valid range."""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"reCAPTCHA min_score must be between 0.0 and 1.0, got: {v}")
+        return v
+
+
+class Settings(BaseSettings):
+    """
+    Main application settings composed of nested configuration classes.
+
+    All settings can be overridden via environment variables.
+    Use nested structure for better organization and clarity.
+    """
+
+    model_config = _base_config
+
+    # Nested settings
+    app: AppSettings = Field(default_factory=AppSettings)
+    server: ServerSettings = Field(default_factory=ServerSettings)
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    security: SecuritySettings = Field(default_factory=SecuritySettings)
+    rate_limit: RateLimitSettings = Field(default_factory=RateLimitSettings)
+    logging: LoggingSettings = Field(default_factory=LoggingSettings)
+    recaptcha: RecaptchaSettings = Field(default_factory=RecaptchaSettings)
+
+    # Legacy compatibility - still accessible at root level
+    frontend_url: str = Field(
+        default="http://localhost:5173",
+        validation_alias="FRONTEND_URL",
+        description="Frontend application URL for reset links and redirects"
+    )
+
+    # Convenience methods
     def is_development(self) -> bool:
         """Check if running in development mode."""
-        return self.environment in (Environment.LOCAL, Environment.DEVELOPMENT)
+        return self.app.environment in (Environment.LOCAL, Environment.DEVELOPMENT)
 
     def is_production(self) -> bool:
         """Check if running in production mode."""
-        return self.environment == Environment.PRODUCTION
+        return self.app.environment == Environment.PRODUCTION
 
     def is_test(self) -> bool:
         """Check if running in test mode."""
-        return self.environment == Environment.TEST
+        return self.app.environment == Environment.TEST
 
 
 @lru_cache

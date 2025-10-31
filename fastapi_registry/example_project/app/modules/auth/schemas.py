@@ -43,6 +43,10 @@ class UserLogin(BaseModel):
 
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
+    recaptchaToken: str | None = Field(
+        default=None,
+        description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)"
+    )
 
 
 class UserRegister(BaseModel):
@@ -56,6 +60,10 @@ class UserRegister(BaseModel):
         description="Password must contain uppercase, lowercase, digit, and special character"
     )
     name: str = Field(..., min_length=1, max_length=100)
+    recaptchaToken: str | None = Field(
+        default=None,
+        description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)"
+    )
 
     @field_validator('password')
     @classmethod
@@ -111,6 +119,10 @@ class ForgotPasswordRequest(BaseModel):
     """Forgot password request schema."""
 
     email: EmailStr
+    recaptchaToken: str | None = Field(
+        default=None,
+        description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)"
+    )
 
 
 class ResetPasswordRequest(BaseModel):

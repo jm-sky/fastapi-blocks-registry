@@ -16,11 +16,11 @@ def configure_logging() -> None:
     Should be called before creating the FastAPI app.
     """
     # Determine log level
-    log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
+    log_level = getattr(logging, settings.logging.level.upper(), logging.INFO)
 
     # Create formatter
     formatter = logging.Formatter(
-        fmt=settings.log_format, datefmt="%Y-%m-%d %H:%M:%S"
+        fmt=settings.logging.format, datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     # Configure root logger
@@ -37,8 +37,8 @@ def configure_logging() -> None:
     root_logger.addHandler(console_handler)
 
     # Add file handler if log file is specified
-    if settings.log_file:
-        log_path = Path(settings.log_file)
+    if settings.logging.file:
+        log_path = Path(settings.logging.file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         file_handler = logging.FileHandler(log_path, encoding="utf-8")
@@ -52,11 +52,11 @@ def configure_logging() -> None:
         logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     else:
         # In development, show SQL queries if database_echo is True
-        if settings.database_echo:
+        if settings.database.echo:
             logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
     logging.info(
-        f"Logging configured: level={settings.log_level}, environment={settings.environment}"
+        f"Logging configured: level={settings.logging.level}, environment={settings.app.environment}"
     )
 
 

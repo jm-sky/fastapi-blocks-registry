@@ -1,14 +1,19 @@
 {
   "auth": {
     "name": "Authentication",
-    "description": "JWT-based authentication with refresh tokens and user management",
-    "version": "1.0.0",
+    "description": "JWT-based authentication with refresh tokens, user management, and PostgreSQL/SQLite support",
+    "version": "1.1.0",
     "path": "example_project/app/modules/auth",
     "dependencies": [
       "PyJWT>=2.10.0",
       "passlib[bcrypt]>=1.7.4",
       "bcrypt>=3.2.0,<4.0.0",
-      "python-multipart>=0.0.20"
+      "python-multipart>=0.0.20",
+      "sqlalchemy[asyncio]>=2.0.35",
+      "alembic>=1.13.0",
+      "aiosqlite>=0.20.0",
+      "asyncpg>=0.30.0",
+      "greenlet>=3.0.0"
     ],
     "python_version": ">=3.12",
     "env": {
@@ -16,7 +21,8 @@
       "JWT_ALGORITHM": "HS256",
       "ACCESS_TOKEN_EXPIRES_MINUTES": "30",
       "REFRESH_TOKEN_EXPIRES_DAYS": "7",
-      "PASSWORD_RESET_TOKEN_EXPIRES_HOURS": "1"
+      "PASSWORD_RESET_TOKEN_EXPIRES_HOURS": "1",
+      "DATABASE_URL": "sqlite+aiosqlite:///./data/app.db"
     },
     "settings_class": "AuthSettings",
     "router_prefix": "/auth",

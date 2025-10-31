@@ -32,14 +32,14 @@ def create_access_token(
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expires_minutes)
+        expire = datetime.now(UTC) + timedelta(minutes=settings.security.access_token_expires_minutes)
 
     to_encode.update({
         "exp": expire,
         "type": "access",
         "iat": datetime.now(UTC)
     })
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
     return encoded_jwt
 
 
@@ -48,7 +48,7 @@ def verify_token(token: str) -> dict[str, Any]:
     from .exceptions import ExpiredTokenError, InvalidTokenError
 
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(token, settings.security.secret_key, algorithms=[settings.security.jwt_algorithm])
         return payload
     except jwt.ExpiredSignatureError:
         raise ExpiredTokenError()
@@ -59,24 +59,24 @@ def verify_token(token: str) -> dict[str, Any]:
 def create_refresh_token(data: dict[str, Any]) -> str:
     """Create a JWT refresh token with longer expiration."""
     to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(days=settings.refresh_token_expires_days)
+    expire = datetime.now(UTC) + timedelta(days=settings.security.refresh_token_expires_days)
     to_encode.update({
         "exp": expire,
         "type": "refresh",
         "iat": datetime.now(UTC)
     })
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
     return encoded_jwt
 
 
 def create_password_reset_token(data: dict[str, Any]) -> str:
     """Create a JWT password reset token with 1-hour expiration."""
     to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(hours=settings.password_reset_token_expires_hours)
+    expire = datetime.now(UTC) + timedelta(hours=settings.security.password_reset_token_expires_hours)
     to_encode.update({
         "exp": expire,
         "type": "password_reset",
         "iat": datetime.now(UTC)
     })
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
     return encoded_jwt

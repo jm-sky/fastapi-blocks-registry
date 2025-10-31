@@ -3,6 +3,5 @@ include LICENSE
 include CLAUDE.md
 include pyproject.toml
 recursive-include fastapi_registry *.json
-recursive-include fastapi_registry/modules *.py
-recursive-include fastapi_registry/templates *
-recursive-include fastapi_registry/templates/fastapi_project .*
+recursive-include fastapi_registry/example_project *.py
+recursive-include fastapi_registry/templates_j2 *.j2

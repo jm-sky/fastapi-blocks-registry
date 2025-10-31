@@ -15,7 +15,10 @@ from .exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
 )
-from .models import User, user_store
+from .models import User
+from .memory_stores import user_repository
+# Uncomment this when using the database repository
+# from .repositories import user_repository
 from .schemas import LoginResponse, UserResponse
 
 logger = logging.getLogger(__name__)
@@ -41,7 +44,7 @@ class AuthService:
             UserAlreadyExistsError: If user with email already exists
         """
         try:
-            user = user_store.create_user(email, password, name)
+            user = await user_repository.create_user(email, password, name)
             return user
         except UserAlreadyExistsError:
             raise
@@ -62,7 +65,7 @@ class AuthService:
             InvalidCredentialsError: If credentials are invalid
         """
         # Get user by email
-        user = user_store.get_user_by_email(email)
+        user = await user_repository.get_user_by_email(email)
         if not user:
             raise InvalidCredentialsError("Invalid email or password")
 
@@ -83,7 +86,7 @@ class AuthService:
             accessToken=access_token,
             refreshToken=refresh_token,
             tokenType="bearer",
-            expiresIn=settings.access_token_expires_minutes * 60  # Convert to seconds
+            expiresIn=settings.security.access_token_expires_minutes * 60  # Convert to seconds
         )
 
     @staticmethod
@@ -113,7 +116,7 @@ class AuthService:
                 raise InvalidTokenError("Invalid token payload")
 
             # Verify user exists
-            user = user_store.get_user_by_id(user_id)
+            user = await user_repository.get_user_by_id(user_id)
             if not user or not user.isActive:
                 raise InvalidTokenError("User not found or inactive")
 
@@ -125,7 +128,7 @@ class AuthService:
                 "accessToken": new_access_token,
                 "refreshToken": new_refresh_token,
                 "tokenType": "bearer",
-                "expiresIn": settings.access_token_expires_minutes * 60
+                "expiresIn": settings.security.access_token_expires_minutes * 60
             }
 
         except InvalidTokenError:
@@ -151,7 +154,7 @@ class AuthService:
             In production, this should send an email with the reset link.
             For development, the token can be logged or returned.
         """
-        token = user_store.generate_reset_token(email)
+        token = await user_repository.generate_reset_token(email)
         if token:
             # TODO: Send email with reset link containing the token
             # In development mode only, log the token (NEVER in production!)
@@ -182,7 +185,7 @@ class AuthService:
         Raises:
             InvalidTokenError: If token is invalid
         """
-        success = user_store.reset_password_with_token(token, new_password)
+        success = await user_repository.reset_password_with_token(token, new_password)
         if not success:
             raise InvalidTokenError("Invalid or expired reset token")
         return True
@@ -208,9 +211,9 @@ class AuthService:
             InvalidCredentialsError: If current password is incorrect
             UserNotFoundError: If user not found
         """
-        success = user_store.change_password(user_id, current_password, new_password)
+        success = await user_repository.change_password(user_id, current_password, new_password)
         if not success:
-            user = user_store.get_user_by_id(user_id)
+            user = await user_repository.get_user_by_id(user_id)
             if not user:
                 raise UserNotFoundError("User not found")
             raise InvalidCredentialsError("Current password is incorrect")

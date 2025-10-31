@@ -17,10 +17,10 @@ def setup_middleware(app: FastAPI) -> None:
     # CORS Middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=settings.cors_credentials,
-        allow_methods=settings.cors_methods,
-        allow_headers=settings.cors_headers,
+        allow_origins=settings.server.cors_origins,
+        allow_credentials=settings.server.cors_credentials,
+        allow_methods=settings.server.cors_methods,
+        allow_headers=settings.server.cors_headers,
     )
 
     # Trusted Host Middleware (for production)

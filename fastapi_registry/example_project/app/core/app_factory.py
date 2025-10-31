@@ -22,17 +22,29 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import logging
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting application", extra={"environment": settings.environment})
+    logger.info("Starting application", extra={"environment": settings.app.environment})
 
-    # Add your startup logic here
-    # Example: Initialize database connection, cache, etc.
+    # Initialize database (optional - uncomment if you want auto-init)
+    # In production, use Alembic migrations instead
+    # try:
+    #     from app.clients.database import init_db
+    #     await init_db()
+    #     logger.info("Database initialized successfully")
+    # except Exception as e:
+    #     logger.error(f"Failed to initialize database: {e}")
 
     yield
 
     # Shutdown
     logger.info("Shutting down application")
-    # Add your shutdown logic here
-    # Example: Close database connections, etc.
+
+    # Close database connections
+    try:
+        from app.clients.database import close_db
+        await close_db()
+        logger.info("Database connections closed successfully")
+    except Exception as e:
+        logger.error(f"Failed to close database connections: {e}")
 
 
 def create_app() -> FastAPI:
@@ -43,9 +55,9 @@ def create_app() -> FastAPI:
         Configured FastAPI application
     """
     app = FastAPI(
-        title=settings.app_name,
-        version=settings.version,
-        debug=settings.debug,
+        title=settings.app.name,
+        version=settings.app.version,
+        debug=settings.app.debug,
         lifespan=lifespan,
         docs_url="/api/docs" if settings.is_development() else None,
         redoc_url="/api/redoc" if settings.is_development() else None,
@@ -123,25 +135,17 @@ def register_routers(app: FastAPI) -> None:
         app: FastAPI application instance
     """
     # Import and register module routers here
-    # Example:
-    # from app.modules.auth.router import router as auth_router
-    # app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
-
-    # Health check endpoint
-    @app.get("/health", tags=["System"])
-    async def health_check() -> dict:
-        """Health check endpoint."""
-        return {
-            "status": "healthy",
-            "environment": settings.environment,
-            "version": settings.version,
-        }
+    try:
+        from app.api.router import api_router
+        app.include_router(api_router, prefix="/api", tags=["API"])
+    except ImportError:
+        pass
 
     @app.get("/", tags=["System"])
     async def root() -> dict:
         """Root endpoint."""
         return {
-            "message": f"Welcome to {settings.app_name}",
-            "version": settings.version,
+            "message": f"Welcome to {settings.app.name}",
+            "version": settings.app.version,
             "docs": "/api/docs" if settings.is_development() else None,
         }
