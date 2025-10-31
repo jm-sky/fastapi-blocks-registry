@@ -1,0 +1,77 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:17-alpine
+    container_name: ops-monitor-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-opsmonitor}
+      - POSTGRES_USER=${POSTGRES_USER:-opsmonitor}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-opsmonitor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Expose port only for development (comment out in production)
+    # ports:
+    #   - "5432:5432"
+
+  # Central Application
+  central:
+    build:
+      context: ..
+      dockerfile: central/Dockerfile
+    image: ops-monitor-central:latest
+    container_name: ops-monitor-central
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - PROJECT_NAME=${PROJECT_NAME:-ops-monitor-central}
+      - CENTRAL_PORT=${CENTRAL_PORT:-8000}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-opsmonitor}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-opsmonitor}
+      - SECRET_KEY=${SECRET_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000"]}
+    ports:
+      - "${CENTRAL_PORT:-8000}:8000"
+    # Volumes (optional - for persistent logs)
+    # volumes:
+    #   - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Resource limits (optional, adjust as needed)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 256M
+
+volumes:
+  postgres_data:
+    driver: local

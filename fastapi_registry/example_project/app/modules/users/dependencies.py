@@ -46,7 +46,7 @@ async def get_current_user() -> User:
     """
     Get the currently authenticated user.
 
-    SECURITY WARNING: This is a MOCK implementation that returns any user!
+    SECURITY WARNING: This is a MOCK implementation!
 
     To use this in development, set environment variable:
         ALLOW_MOCK_AUTH=true
@@ -67,16 +67,18 @@ async def get_current_user() -> User:
         )
 
     # MOCK IMPLEMENTATION - DO NOT USE IN PRODUCTION
-    from .models import user_store
+    # Returns a fake user for testing purposes
+    from datetime import UTC, datetime
 
-    mock_user = user_store.get_all_users(limit=1)
-    if not mock_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated (no users in store)",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return mock_user[0]
+    return User(
+        id="mock-user-id",
+        email="mock@example.com",
+        name="Mock User",
+        role="admin",
+        isActive=True,
+        createdAt=datetime.now(UTC),
+        updatedAt=datetime.now(UTC)
+    )
 
 
 async def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:

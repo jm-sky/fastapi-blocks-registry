@@ -45,5 +45,39 @@
     "author": "FastAPI Blocks Registry",
     "repository": "https://github.com/yourusername/fastapi-blocks-registry",
     "notes": "IMPORTANT: This module has mock authentication. To use with auth module, modify users/dependencies.py to import from app.modules.auth.dependencies. See users/dependencies.py and users/models.py for integration instructions."
+  },
+  "logs": {
+    "name": "Logging System",
+    "description": "Comprehensive logging with database storage, error tracking decorator, search, and REST API. Supports multiple log levels, request tracing, and user activity tracking.",
+    "version": "1.0.0",
+    "path": "example_project/app/modules/logs",
+    "dependencies": [
+      "sqlalchemy[asyncio]>=2.0.35",
+      "alembic>=1.13.0",
+      "aiosqlite>=0.20.0",
+      "asyncpg>=0.30.0",
+      "greenlet>=3.0.0"
+    ],
+    "python_version": ">=3.12",
+    "env": {
+      "DATABASE_URL": "sqlite+aiosqlite:///./data/app.db"
+    },
+    "settings_class": null,
+    "router_prefix": "/logs",
+    "tags": ["Logs", "Monitoring"],
+    "author": "FastAPI Blocks Registry",
+    "repository": "https://github.com/yourusername/fastapi-blocks-registry",
+    "features": [
+      "Database storage (PostgreSQL/SQLite)",
+      "5 log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+      "@log_errors decorator for automatic error logging",
+      "Request tracing with request_id",
+      "User activity tracking",
+      "Full-text search across message, module, function",
+      "Advanced filtering by level, user, date, module",
+      "Automatic cleanup of old logs",
+      "REST API for log management"
+    ],
+    "notes": "Use @log_errors decorator to automatically log exceptions. The decorator extracts user_id, request_id, and log_service from function parameters. See logs/README.md for usage examples."
   }
 }

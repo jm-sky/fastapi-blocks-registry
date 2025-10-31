@@ -10,20 +10,33 @@ you should integrate them to share the same User model:
 Integration Steps:
 1. In users/dependencies.py, import from this auth module:
    from app.modules.auth.models import User
-   from app.modules.auth.repositories import user_repository
+   from app.modules.auth.repositories import get_user_repository
    from app.modules.auth.dependencies import get_current_user
 
 2. Remove users/models.py (or keep it as a reference)
 
-3. Update users/service.py to use the auth module's user_repository
+3. Update users module to use the auth module's repository
 
 This ensures both modules work with the same user data and there's no
 duplication or inconsistency.
 
-For production use:
-- Replace in-memory UserStore with database (SQLAlchemy with PostgreSQL/MySQL)
-- Implement proper session management
-- Add email verification and 2FA if needed
+Database Configuration:
+-----------------------
+This module uses SQLAlchemy with async support. Configure via DATABASE_URL:
+
+Development (SQLite with file):
+  DATABASE_URL=sqlite+aiosqlite:///./dev.db
+
+Development (in-memory, data lost on restart):
+  DATABASE_URL=sqlite+aiosqlite:///:memory:
+
+Production (PostgreSQL):
+  DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/dbname
+
+Additional features to consider:
+- Email verification
+- Two-factor authentication (2FA)
+- OAuth integration
 """
 
 import logging
