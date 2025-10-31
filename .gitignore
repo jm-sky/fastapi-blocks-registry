@@ -17,6 +17,7 @@ env/
 htmlcov/
 .tox/
 *.cover
+.test/
 
 # Linting/Type checking
 .ruff_cache/
