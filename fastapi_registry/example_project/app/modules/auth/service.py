@@ -3,8 +3,6 @@
 import logging
 import os
 
-from fastapi_registry.example_project.app.modules.auth.types import UserRepositoryInterface
-
 from ...core.config import settings
 from .auth_utils import (
     create_access_token,
@@ -19,6 +17,7 @@ from .exceptions import (
 )
 from .models import User
 from .schemas import LoginResponse, UserResponse
+from .types import UserRepositoryInterface
 
 logger = logging.getLogger(__name__)
 
