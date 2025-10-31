@@ -93,10 +93,10 @@ class ProjectInitializer:
             "app/core/config.py",  # -> templates_j2/config.py.j2
         }
 
-        # Directories to exclude (modules are added separately by users)
+        # Directories to exclude (modules and common utils are added separately by users)
         exclude_dirs = {
-            "app/modules/auth",
-            "app/modules/users",
+            "app/modules",  # Modules are added with 'fastapi-registry add <module>'
+            "app/common",   # Common utilities added as dependencies when needed
         }
 
         # Copy all files from example_project

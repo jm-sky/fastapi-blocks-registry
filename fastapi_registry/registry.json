@@ -37,6 +37,7 @@
     "path": "example_project/app/modules/users",
     "dependencies": [],
     "module_dependencies": ["auth"],
+    "common_dependencies": ["pagination", "search"],
     "python_version": ">=3.12",
     "env": {},
     "settings_class": "UserSettings",
@@ -58,6 +59,7 @@
       "asyncpg>=0.30.0",
       "greenlet>=3.0.0"
     ],
+    "common_dependencies": ["pagination", "search"],
     "python_version": ">=3.12",
     "env": {
       "DATABASE_URL": "sqlite+aiosqlite:///./data/app.db"

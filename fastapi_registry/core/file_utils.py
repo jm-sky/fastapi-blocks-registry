@@ -21,6 +21,18 @@ def copy_directory(src: Path, dst: Path, exist_ok: bool = True) -> None:
     shutil.copytree(src, dst, dirs_exist_ok=exist_ok)
 
 
+def copy_file(src: Path, dst: Path) -> None:
+    """
+    Copy a single file from src to dst.
+
+    Args:
+        src: Source file path
+        dst: Destination file path
+    """
+    ensure_directory_exists(dst.parent)
+    shutil.copy2(src, dst)
+
+
 def ensure_directory_exists(path: Path) -> None:
     """Create directory if it doesn't exist."""
     path.mkdir(parents=True, exist_ok=True)
@@ -290,13 +302,10 @@ def add_router_to_api_router(
 
     # Find last import line
     last_import_idx = None
-    api_router_idx = None
 
     for i, line in enumerate(lines):
         if re.match(r"^\s*(?:from|import)\s+", line):
             last_import_idx = i
-        if "api_router = APIRouter()" in line:
-            api_router_idx = i
 
     # Add import after last import
     if last_import_idx is not None:
