@@ -6,7 +6,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from .db_models import LogLevel
-from .exceptions import LogNotFoundError
 from .repositories import LogRepository, get_log_repository
 from .service import LogService
 from .schemas import (

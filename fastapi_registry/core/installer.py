@@ -68,6 +68,10 @@ class ModuleInstaller:
         # Copy module files
         file_utils.copy_directory(src_path, dst_path)
 
+        # Copy common dependencies if needed
+        if module.common_dependencies:
+            self._install_common_dependencies(module.common_dependencies, project_path)
+
         # Update requirements.txt
         requirements_path = project_path / "requirements.txt"
         if module.dependencies:
@@ -111,6 +115,51 @@ class ModuleInstaller:
                     module.router_prefix,
                     module.tags
                 )
+
+    def _install_common_dependencies(
+        self, common_deps: list[str], project_path: Path
+    ) -> None:
+        """
+        Install common utility dependencies.
+
+        Args:
+            common_deps: List of common dependency names (e.g., ['pagination', 'search'])
+            project_path: Path to the project
+        """
+        for common_dep in common_deps:
+            # Source path in registry
+            src_path = self.registry_base_path / "example_project" / "app" / "common" / f"{common_dep}.py"
+
+            # Destination path in project
+            common_dir = project_path / "app" / "common"
+            dst_path = common_dir / f"{common_dep}.py"
+
+            # Skip if already exists
+            if dst_path.exists():
+                continue
+
+            # Ensure common directory exists
+            file_utils.ensure_directory_exists(common_dir)
+
+            # Create __init__.py in common if it doesn't exist
+            common_init = common_dir / "__init__.py"
+            if not common_init.exists():
+                # Copy the __init__.py from example_project
+                src_init = self.registry_base_path / "example_project" / "app" / "common" / "__init__.py"
+                if src_init.exists():
+                    file_utils.copy_file(src_init, common_init)
+                else:
+                    file_utils.write_file(common_init, '"""Common utilities."""\n')
+
+            # Verify source file exists
+            if not src_path.exists():
+                raise ValueError(
+                    f"Common dependency '{common_dep}' not found at {src_path}. "
+                    "Registry may be corrupted."
+                )
+
+            # Copy the file
+            file_utils.copy_file(src_path, dst_path)
 
     def _validate_project_structure(self, project_path: Path) -> None:
         """

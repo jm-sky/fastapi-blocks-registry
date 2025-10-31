@@ -18,6 +18,14 @@ class ModuleMetadata(BaseModel):
         default_factory=list,
         description="List of Python package dependencies"
     )
+    module_dependencies: list[str] = Field(
+        default_factory=list,
+        description="List of other modules this module depends on"
+    )
+    common_dependencies: list[str] = Field(
+        default_factory=list,
+        description="List of common utility modules (e.g., ['pagination', 'search'])"
+    )
     python_version: str = Field(
         default=">=3.12",
         description="Required Python version"

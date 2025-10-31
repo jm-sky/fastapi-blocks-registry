@@ -7,7 +7,7 @@ to the database when they occur in decorated functions.
 import functools
 import inspect
 import logging
-from typing import Any, Callable, TypeVar, ParamSpec
+from typing import Any, Awaitable, Callable, TypeVar, ParamSpec, cast
 
 from fastapi import Request
 
@@ -57,7 +57,7 @@ def log_errors(
             @functools.wraps(func)
             async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 try:
-                    return await func(*args, **kwargs)
+                    return await cast(Awaitable[T], func(*args, **kwargs))
                 except Exception as e:
                     # Try to get log service from function arguments or kwargs
                     log_service = _extract_log_service(args, kwargs)

@@ -4,7 +4,6 @@ This module provides request and response schemas for the logs API endpoints.
 """
 
 from datetime import datetime
-from typing import Any
 
 from pydantic import BaseModel, Field
 
