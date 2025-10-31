@@ -39,6 +39,7 @@ NC='\033[0m' # No Color
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEST_DIR="${REPO_ROOT}/.test"
 TEST_PROJECT="${TEST_DIR}/test_project"
+SECRET_KEY="test-key-min-32-chars-long!!!!!!"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  FastAPI Registry - Automated Testing${NC}"
@@ -87,6 +88,37 @@ print_error() {
 # Function to print warning
 print_warning() {
     echo -e "${YELLOW}⚠ $1${NC}"
+}
+
+# Function to test Python command and show errors
+# Usage: test_python_command "python_code" "success_message" "error_message" [SECRET_KEY]
+test_python_command() {
+    local python_code="$1"
+    local success_msg="$2"
+    local error_msg="$3"
+    local secret_key="${4:-}"
+    
+    set +e  # Temporarily disable exit on error
+    TMP_OUTPUT=$(mktemp)
+    
+    if [ -n "$secret_key" ]; then
+        SECRET_KEY="$secret_key" python -c "$python_code" > "$TMP_OUTPUT" 2>&1
+    else
+        python -c "$python_code" > "$TMP_OUTPUT" 2>&1
+    fi
+    
+    EXIT_CODE=$?
+    ERROR_OUTPUT=$(cat "$TMP_OUTPUT")
+    rm -f "$TMP_OUTPUT"
+    set -e  # Re-enable exit on error
+    
+    if [ $EXIT_CODE -eq 0 ]; then
+        print_success "$success_msg"
+    else
+        print_error "$error_msg"
+        echo -e "${RED}Error details:${NC}"
+        echo "$ERROR_OUTPUT" | sed 's/^/  /'
+    fi
 }
 
 # ------------------------------------------------------------
@@ -258,25 +290,25 @@ print_step "Step 10: Testing module imports in test project"
 cd "$TEST_PROJECT"
 
 # Test auth module
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "from app.modules.auth import router; print('✓ auth')" 2>/dev/null; then
-    print_success "Auth module imports successfully in test project"
-else
-    print_error "Auth module import failed in test project"
-fi
+test_python_command \
+    "from app.modules.auth import router; print('✓ auth')" \
+    "Auth module imports successfully in test project" \
+    "Auth module import failed in test project" \
+    "$SECRET_KEY"
 
 # Test users module
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "from app.modules.users import router; print('✓ users')" 2>/dev/null; then
-    print_success "Users module imports successfully in test project"
-else
-    print_error "Users module import failed in test project"
-fi
+test_python_command \
+    "from app.modules.users import router; print('✓ users')" \
+    "Users module imports successfully in test project" \
+    "Users module import failed in test project" \
+    "$SECRET_KEY"
 
 # Test logs module
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "from app.modules.logs import router; print('✓ logs')" 2>/dev/null; then
-    print_success "Logs module imports successfully in test project"
-else
-    print_error "Logs module import failed in test project"
-fi
+test_python_command \
+    "from app.modules.logs import router; print('✓ logs')" \
+    "Logs module imports successfully in test project" \
+    "Logs module import failed in test project" \
+    "$SECRET_KEY"
 
 # ------------------------------------------------------------
 # Step 11: Test module imports in example project
@@ -286,48 +318,42 @@ print_step "Step 11: Testing module imports in example project"
 cd "$REPO_ROOT/fastapi_registry/example_project"
 
 # Test auth module
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "from app.modules.auth import router; print('✓ auth')" 2>/dev/null; then
-    print_success "Auth module imports successfully"
-else
-    print_error "Auth module import failed"
-fi
+test_python_command \
+    "from app.modules.auth import router; print('✓ auth')" \
+    "Auth module imports successfully" \
+    "Auth module import failed" \
+    "$SECRET_KEY"
 
 # Test users module
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "from app.modules.users import router; print('✓ users')" 2>/dev/null; then
-    print_success "Users module imports successfully"
-else
-    print_error "Users module import failed"
-fi
+test_python_command \
+    "from app.modules.users import router; print('✓ users')" \
+    "Users module imports successfully" \
+    "Users module import failed" \
+    "$SECRET_KEY"
 
 # Test logs module
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "from app.modules.logs import router; print('✓ logs')" 2>/dev/null; then
-    print_success "Logs module imports successfully"
-else
-    print_error "Logs module import failed"
-fi
+test_python_command \
+    "from app.modules.logs import router; print('✓ logs')" \
+    "Logs module imports successfully" \
+    "Logs module import failed" \
+    "$SECRET_KEY"
 
 # Test common utils
-if python -c "from app.common import PaginationParams, SearchMixin; print('✓ common')" 2>/dev/null; then
-    print_success "Common utils import successfully"
-else
-    print_error "Common utils import failed"
-fi
+test_python_command \
+    "from app.common import PaginationParams, SearchMixin; print('✓ common')" \
+    "Common utils import successfully" \
+    "Common utils import failed"
 
 # ------------------------------------------------------------
 # Step 12: Test all modules together
 # ------------------------------------------------------------
 print_step "Step 12: Testing all modules together"
 
-if SECRET_KEY="test-key-min-32-chars-long!!!!" python -c "
-from app.modules.auth import router as auth_router
-from app.modules.users import router as users_router
-from app.modules.logs import router as logs_router
-print('✓ All modules can be imported together')
-" 2>/dev/null; then
-    print_success "All modules import together successfully"
-else
-    print_error "Failed to import all modules together"
-fi
+test_python_command \
+    "from app.modules.auth import router as auth_router; from app.modules.users import router as users_router; from app.modules.logs import router as logs_router; print('✓ All modules can be imported together')" \
+    "All modules import together successfully" \
+    "Failed to import all modules together" \
+    "$SECRET_KEY"
 
 # ------------------------------------------------------------
 # Step 13: Compile all Python files
