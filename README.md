@@ -309,6 +309,30 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
+### Local Development & Testing
+
+To run the CLI locally without publishing to PyPI:
+
+```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install in editable mode
+pip install -e .
+
+# Test the CLI
+fastapi-registry --help
+fastapi-registry list
+
+# Create a test project
+cd /tmp
+fastapi-registry init my-test-app --name "TestApp"
+cd my-test-app
+fastapi-registry add auth --yes
+```
+
+For detailed testing guide and additional methods (build & install from wheel, TestPyPI testing, automated tests), see [docs/LOCAL_TESTING.md](docs/LOCAL_TESTING.md).
+
 ### Running Tests
 
 ```bash

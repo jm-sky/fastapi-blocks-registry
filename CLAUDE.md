@@ -234,6 +234,21 @@ Each module must be:
 
 ## Development Workflow
 
+### Local CLI Development & Testing
+
+To run the CLI locally during development without publishing to PyPI:
+
+```bash
+source .venv/bin/activate
+pip install -e .
+fastapi-registry --help
+fastapi-registry list
+```
+
+Changes to the code are immediately reflected without reinstalling. For testing guide see [docs/LOCAL_TESTING.md](docs/LOCAL_TESTING.md).
+
+### Module Development Workflow
+
 1. **Module Development**
    - Create module in `fastapi_registry/example_project/app/modules/`
    - Follow the standard module structure
