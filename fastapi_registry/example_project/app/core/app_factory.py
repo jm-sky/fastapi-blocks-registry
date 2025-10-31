@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Initialize database (optional - uncomment if you want auto-init)
     # In production, use Alembic migrations instead
     # try:
-    #     from app.clients.database import init_db
+    #     from app.core.database import init_db
     #     await init_db()
     #     logger.info("Database initialized successfully")
     # except Exception as e:
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     # Close database connections
     try:
-        from app.clients.database import close_db
+        from app.core.database import close_db
         await close_db()
         logger.info("Database connections closed successfully")
     except Exception as e:

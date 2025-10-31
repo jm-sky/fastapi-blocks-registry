@@ -95,7 +95,7 @@ Or for quick development, uncomment auto-init in `app_factory.py`:
 
 ```python
 # In app/core/app_factory.py lifespan function:
-from app.clients.database import init_db
+from app.core.database import init_db
 await init_db()  # Auto-create tables on startup
 ```
 
@@ -126,7 +126,7 @@ For database mode with dependency injection:
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.clients.database import get_db
+from app.core.database import get_db
 from .repositories import UserRepository, get_user_repository
 
 async def get_current_user(
@@ -299,9 +299,9 @@ app/modules/auth/
 ### Import Errors
 
 ```python
-# If you see: ModuleNotFoundError: No module named 'app.clients.database'
+# If you see: ModuleNotFoundError: No module named 'app.core.database'
 # Make sure database.py exists and contains the Base class:
-from app.clients.database import Base
+from app.core.database import Base
 ```
 
 ### Database Connection Errors

@@ -87,7 +87,7 @@
 - [x] **3.4.1** Reviewed `db_models.py` - proper column types (String, Boolean, DateTime)
 - [x] **3.4.2** Email field has index=True for fast lookups
 - [x] **3.4.3** Timezone-aware datetime fields with DateTime(timezone=True)
-- [x] **3.4.4** Updated import to use new Base from app.clients.database
+- [x] **3.4.4** Updated import to use new Base from app.core.database
 
 #### 3.5 Memory Store (Dev Alternative)
 - [x] **3.5.1** Updated `memory_stores.py` to match async interface

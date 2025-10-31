@@ -1,6 +1,11 @@
-"""Database configuration and session management."""
+"""Database connection and session management with async support.
+
+This module provides async database connectivity for both SQLite and PostgreSQL.
+It uses SQLAlchemy 2.0+ with async engine and sessions.
+"""
 
 from typing import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -11,11 +16,23 @@ from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
 
-# Create async engine
+class Base(DeclarativeBase):
+    """Base class for SQLAlchemy ORM models.
+
+    All database models should inherit from this class.
+    Provides common functionality and metadata management.
+    """
+    pass
+
+
+# Create async engine with appropriate settings
 engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.is_development,  # Log SQL queries in development
-    future=True,
+    settings.database.url,
+    echo=settings.database.echo,
+    pool_pre_ping=True,  # Verify connections before using
+    pool_size=settings.database.pool_size,
+    max_overflow=settings.database.max_overflow,
+    pool_recycle=settings.database.pool_recycle,
 )
 
 # Create async session factory
@@ -28,18 +45,21 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-class Base(DeclarativeBase):
-    """Base class for SQLAlchemy models."""
-    pass
-
-
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Dependency for getting async database sessions.
-    
-    Usage in FastAPI endpoints:
-        async def my_endpoint(db: AsyncSession = Depends(get_db)):
-            ...
+    Async dependency that provides a database session.
+
+    Yields an async SQLAlchemy session and ensures it's closed after use.
+    Use this as a FastAPI dependency in endpoints.
+
+    Example:
+        @router.get("/users")
+        async def get_users(db: AsyncSession = Depends(get_db)):
+            result = await db.execute(select(User))
+            return result.scalars().all()
+
+    Yields:
+        AsyncSession: Database session for async operations
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -53,12 +73,32 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database - create all tables."""
+    """
+    Initialize database tables asynchronously.
+
+    Creates all tables defined in SQLAlchemy models.
+
+    Note:
+        In production, use Alembic migrations instead of this function.
+        This is primarily useful for development and testing.
+
+    Example:
+        # In app startup
+        await init_db()
+    """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
 async def close_db() -> None:
-    """Close database connections."""
-    await engine.dispose()
+    """
+    Close database connections and dispose engine.
 
+    Call this during application shutdown to cleanly close
+    all database connections.
+
+    Example:
+        # In app shutdown
+        await close_db()
+    """
+    await engine.dispose()
