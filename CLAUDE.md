@@ -92,7 +92,7 @@ example_project/app/modules/auth/
 
 **Type Hints**
 - All functions and methods must have complete type hints
-- Use modern Python typing features (Python 3.10+)
+- Use modern Python typing features (Python 3.11+)
 - Leverage Pydantic for runtime validation
 
 **Async/Await**
@@ -207,7 +207,7 @@ Each module must be:
     "version": "1.0.0",
     "path": "modules/module_name",
     "dependencies": ["package1", "package2"],
-    "python_version": ">=3.10",
+    "python_version": ">=3.11",
     "env": {
       "VAR_NAME": "default_value"
     },

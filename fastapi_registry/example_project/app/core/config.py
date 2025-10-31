@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     # CORS Settings
     cors_origins: list[str] = Field(
         default=["http://localhost:3000"],
-        description="Allowed CORS origins (comma-separated)",
+        description="Allowed CORS origins",
     )
     cors_credentials: bool = Field(default=True, description="Allow credentials")
     cors_methods: list[str] = Field(default=["*"], description="Allowed HTTP methods")
