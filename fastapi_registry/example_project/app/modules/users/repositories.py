@@ -20,7 +20,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.common.search import SearchMixin, build_search_filter
+from app.common.search import SearchMixin
 
 from .models import User
 from .db_models import UserDB

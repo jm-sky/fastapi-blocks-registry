@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from .dependencies import AdminUser, CurrentUser
-from .exceptions import UserAlreadyExistsError, UserNotFoundError
+from .exceptions import UserAlreadyExistsError
 from .repositories import UserRepository, get_user_repository
 from .schemas import (
     MessageResponse,

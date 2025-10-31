@@ -33,7 +33,7 @@ async def process_data_endpoint(
 
     # Log successful processing
     await log_service.log_info(
-        message=f"Successfully processed data",
+        message="Successfully processed data",
         module="example",
         function="process_data_endpoint",
         extra_data=str(data)
@@ -100,7 +100,6 @@ async def risky_operation_endpoint(
     This endpoint demonstrates error logging without re-raising.
     The error is logged, but the endpoint returns normally.
     """
-    log_service = LogService(repo)
 
     # This will fail but won't raise an exception
     raise RuntimeError("Something went wrong")

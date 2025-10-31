@@ -368,14 +368,14 @@ echo -e "${BLUE}═════════════════════�
 echo -e "${BLUE}  Test Summary${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 
-print_success "✓ CLI installation and version check"
-print_success "✓ Module listing (list command)"
-print_success "✓ Project initialization (init command)"
-print_success "✓ Module installation (add auth, users, logs)"
-print_success "✓ Module imports in test project"
-print_success "✓ Module imports in example project"
-print_success "✓ Code quality checks (ruff, mypy)"
-print_success "✓ Code compilation"
+print_success "CLI installation and version check"
+print_success "Module listing (list command)"
+print_success "Project initialization (init command)"
+print_success "Module installation (add auth, users, logs)"
+print_success "Module imports in test project"
+print_success "Module imports in example project"
+print_success "Code quality checks (ruff, mypy)"
+print_success "Code compilation"
 
 if [ $COMPILE_ERRORS -eq 0 ]; then
     echo

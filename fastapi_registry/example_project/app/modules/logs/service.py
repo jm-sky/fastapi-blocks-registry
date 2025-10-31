@@ -6,10 +6,9 @@ This module provides high-level business logic for log management.
 import logging
 import traceback as tb
 from datetime import datetime
-from typing import Any
 
 from .db_models import LogLevel
-from .models import Log, LogCreate
+from .models import Log
 from .repositories import LogRepository
 
 
