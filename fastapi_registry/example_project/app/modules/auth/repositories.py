@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients.database import get_db
 
+from .memory_stores import MemoryUserStore
 from .types import UserRepositoryInterface
 from .models import User
 from .db_models import UserDB
@@ -261,7 +262,7 @@ class UserRepository(UserRepositoryInterface):
         return True
 
 
-def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
+def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepositoryInterface:
     """
     FastAPI dependency to get user repository instance.
 
@@ -278,4 +279,7 @@ def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
         ):
             return await repo.get_all_users()
     """
-    return UserRepository(db)
+    # Using in-memory user store for development
+    return MemoryUserStore()
+    # Uncomment this when using the database repository
+    # return UserRepository(db)

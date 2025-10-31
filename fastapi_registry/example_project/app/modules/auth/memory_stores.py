@@ -34,7 +34,7 @@ from .exceptions import (  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
-class UserStore(UserRepositoryInterface):
+class MemoryUserStore(UserRepositoryInterface):
     """In-memory user store for development and testing.
 
     This implementation stores users in memory (dictionaries) and provides
@@ -143,4 +143,4 @@ class UserStore(UserRepositoryInterface):
 
 
 # Global user store instance
-user_repository = UserStore()
+user_repository = MemoryUserStore()

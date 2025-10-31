@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from .service import AuthService
 from .types import UserRepositoryInterface
 from .auth_utils import verify_token
 from .exceptions import ExpiredTokenError, InvalidTokenError, InactiveUserError
@@ -13,6 +14,12 @@ from .repositories import get_user_repository
 
 # HTTP Bearer security scheme
 security = HTTPBearer()
+
+
+def get_auth_service(
+    user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)]
+) -> AuthService:
+    return AuthService(user_repository)
 
 
 async def get_current_user(
@@ -90,3 +97,4 @@ async def get_current_user(
 
 # Type alias for dependency injection
 CurrentUser = Annotated[User, Depends(get_current_user)]
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]

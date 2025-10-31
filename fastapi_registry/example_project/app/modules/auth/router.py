@@ -17,7 +17,7 @@ To disable rate limiting (NOT recommended):
 from fastapi import APIRouter, HTTPException, Request, status
 
 from .decorators import rate_limit, recaptcha_protected
-from .dependencies import CurrentUser
+from .dependencies import AuthServiceDep, CurrentUser
 from .exceptions import (
     InvalidCredentialsError,
     InvalidTokenError,
@@ -35,7 +35,6 @@ from .schemas import (
     UserRegister,
     UserResponse,
 )
-from .service import AuthService
 
 # Create router
 router = APIRouter()
@@ -51,7 +50,7 @@ router = APIRouter()
 )
 @rate_limit("5/minute")  # Prevent registration abuse
 @recaptcha_protected("register")  # Disabled by default, enable via RECAPTCHA_ENABLED=true
-async def register(user_data: UserRegister, request: Request) -> UserResponse:
+async def register(user_data: UserRegister, auth_service: AuthServiceDep, request: Request) -> UserResponse:
     """
     Register a new user.
 
@@ -61,7 +60,7 @@ async def register(user_data: UserRegister, request: Request) -> UserResponse:
     - 💡 Recommendation: Add email verification in production
     """
     try:
-        user = await AuthService.register_user(
+        user = await auth_service.register_user(
             email=user_data.email,
             password=user_data.password,
             name=user_data.name
@@ -83,7 +82,11 @@ async def register(user_data: UserRegister, request: Request) -> UserResponse:
 )
 @rate_limit("10/minute")  # CRITICAL: Prevent brute force attacks
 @recaptcha_protected("login")  # Disabled by default, enable via RECAPTCHA_ENABLED=true
-async def login(credentials: UserLogin, request: Request) -> LoginResponse:
+async def login(
+    credentials: UserLogin,
+    auth_service: AuthServiceDep,
+    request: Request
+) -> LoginResponse:
     """
     Login user and return tokens.
 
@@ -93,7 +96,7 @@ async def login(credentials: UserLogin, request: Request) -> LoginResponse:
     - 💡 Recommendation: Implement account lockout after N failed attempts
     """
     try:
-        return await AuthService.login_user(
+        return await auth_service.login_user(
             email=credentials.email,
             password=credentials.password
         )
@@ -113,7 +116,11 @@ async def login(credentials: UserLogin, request: Request) -> LoginResponse:
     tags=["Authentication"]
 )
 @rate_limit("20/minute")  # Prevent token refresh abuse
-async def refresh_token(token_data: TokenRefresh, request: Request) -> dict:
+async def refresh_token(
+    token_data: TokenRefresh,
+    auth_service: AuthServiceDep,
+    request: Request
+) -> dict:
     """
     Refresh access token.
 
@@ -122,7 +129,7 @@ async def refresh_token(token_data: TokenRefresh, request: Request) -> dict:
     - 💡 Recommendation: Consider implementing refresh token rotation
     """
     try:
-        return await AuthService.refresh_access_token(token_data.refreshToken)
+        return await auth_service.refresh_access_token(token_data.refreshToken)
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,7 +147,11 @@ async def refresh_token(token_data: TokenRefresh, request: Request) -> dict:
 )
 @rate_limit("3/minute")  # CRITICAL: Prevent email enumeration and spam
 @recaptcha_protected("forgot_password")  # Disabled by default, enable via RECAPTCHA_ENABLED=true
-async def forgot_password(request_data: ForgotPasswordRequest, request: Request) -> MessageResponse:
+async def forgot_password(
+    request_data: ForgotPasswordRequest,
+    auth_service: AuthServiceDep,
+    request: Request
+) -> MessageResponse:
     """
     Request password reset.
 
@@ -150,7 +161,7 @@ async def forgot_password(request_data: ForgotPasswordRequest, request: Request)
     - ✅ Generic response message (prevents email enumeration)
     """
     # Always return success message to prevent email enumeration
-    await AuthService.request_password_reset(request_data.email)
+    await auth_service.request_password_reset(request_data.email)
     return MessageResponse(
         message="If the email exists, a password reset link has been sent"
     )
@@ -164,7 +175,11 @@ async def forgot_password(request_data: ForgotPasswordRequest, request: Request)
     tags=["Authentication"]
 )
 @rate_limit("5/minute")  # Prevent token brute force
-async def reset_password(request_data: ResetPasswordRequest, request: Request) -> MessageResponse:
+async def reset_password(
+    request_data: ResetPasswordRequest,
+    auth_service: AuthServiceDep,
+    request: Request
+) -> MessageResponse:
     """
     Reset password with token.
 
@@ -173,7 +188,7 @@ async def reset_password(request_data: ResetPasswordRequest, request: Request) -
     - ✅ Token is single-use and short-lived (1 hour)
     """
     try:
-        await AuthService.reset_password(request_data.token, request_data.newPassword)
+        await auth_service.reset_password(request_data.token, request_data.newPassword)
         return MessageResponse(message="Password has been reset successfully")
     except InvalidTokenError:
         raise HTTPException(
@@ -193,6 +208,7 @@ async def reset_password(request_data: ResetPasswordRequest, request: Request) -
 async def change_password(
     request_data: ChangePasswordRequest,
     current_user: CurrentUser,
+    auth_service: AuthServiceDep,
     request: Request
 ) -> MessageResponse:
     """
@@ -204,7 +220,7 @@ async def change_password(
     - ✅ Current password verification required
     """
     try:
-        await AuthService.change_password(
+        await auth_service.change_password(
             user_id=current_user.id,
             current_password=request_data.currentPassword,
             new_password=request_data.newPassword
