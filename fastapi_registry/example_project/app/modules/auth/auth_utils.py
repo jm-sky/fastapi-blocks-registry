@@ -7,6 +7,8 @@ import jwt
 from passlib.context import CryptContext
 
 from ...core.config import settings
+from .types.jwt import JWTPayload
+
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -14,12 +16,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)  # type: ignore[no-any-return]
 
 
 def get_password_hash(password: str) -> str:
     """Hash a password."""
-    return pwd_context.hash(password)
+    return pwd_context.hash(password)  # type: ignore[no-any-return]
 
 
 def create_access_token(
@@ -43,13 +45,13 @@ def create_access_token(
     return encoded_jwt
 
 
-def verify_token(token: str) -> dict[str, Any]:
+def verify_token(token: str) -> JWTPayload:
     """Verify and decode a JWT token."""
     from .exceptions import ExpiredTokenError, InvalidTokenError
 
     try:
         payload = jwt.decode(token, settings.security.secret_key, algorithms=[settings.security.jwt_algorithm])
-        return payload
+        return payload  # type: ignore[no-any-return]
     except jwt.ExpiredSignatureError:
         raise ExpiredTokenError()
     except jwt.InvalidTokenError:

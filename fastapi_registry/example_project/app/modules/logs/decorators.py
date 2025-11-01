@@ -92,7 +92,7 @@ def log_errors(
 
                     if reraise:
                         raise
-                    return None  # type: ignore
+                    return None  # type: ignore[return-value]  # type: ignore
 
             return async_wrapper  # type: ignore
         else:
@@ -109,9 +109,9 @@ def log_errors(
 
                     if reraise:
                         raise
-                    return None  # type: ignore
+                    return None  # type: ignore[return-value]
 
-            return sync_wrapper  # type: ignore
+            return sync_wrapper
 
     return decorator
 

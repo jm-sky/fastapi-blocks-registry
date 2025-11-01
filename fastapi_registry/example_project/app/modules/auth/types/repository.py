@@ -6,7 +6,7 @@ repositories must implement. This allows easy switching between implementations.
 
 from abc import ABC, abstractmethod
 
-from .models import User
+from ..models import User
 
 
 class UserRepositoryInterface(ABC):

@@ -109,7 +109,7 @@ async def verify_recaptcha(token: str, action: str = "submit") -> dict[str, Any]
                 f"reCAPTCHA verification failed: score too low ({score})"
             )
 
-        return result
+        return result  # type: ignore[no-any-return]
 
     except httpx.HTTPError as e:
         logger.error(f"reCAPTCHA HTTP error: {e}")

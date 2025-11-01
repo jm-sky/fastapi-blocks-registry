@@ -50,7 +50,7 @@ def rate_limit(limit: str):
 
     def decorator(func: Callable) -> Callable:
         # Apply limiter.limit directly - it will handle the request parameter
-        return limiter.limit(limit)(func)
+        return limiter.limit(limit)(func)  # type: ignore[no-any-return]
 
     return decorator
 

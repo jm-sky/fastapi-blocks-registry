@@ -103,7 +103,7 @@ class SearchMixin:
                 return result.scalars().all()
     """
 
-    _search_columns: list[Column[Any]] = []
+    _search_columns: list[Any] = []
     _case_sensitive: bool = False
 
     def apply_search(

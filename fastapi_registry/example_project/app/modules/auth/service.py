@@ -17,7 +17,7 @@ from .exceptions import (
 )
 from .models import User
 from .schemas import LoginResponse, UserResponse
-from .types import UserRepositoryInterface
+from .types.repository import UserRepositoryInterface
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class AuthService:
         )
 
 
-    async def refresh_access_token(self, refresh_token: str) -> dict[str, str]:
+    async def refresh_access_token(self, refresh_token: str) -> dict[str, str | int]:
         """
         Refresh access token using refresh token.
 

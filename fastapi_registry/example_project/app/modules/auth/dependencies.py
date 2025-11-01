@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .service import AuthService
-from .types import UserRepositoryInterface
+from .types.repository import UserRepositoryInterface
 from .auth_utils import verify_token
 from .exceptions import ExpiredTokenError, InvalidTokenError, InactiveUserError
 from .models import User
@@ -53,8 +53,8 @@ async def get_current_user(
             )
 
         # Get user ID from token
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        user_id = payload.get("sub")
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token payload",

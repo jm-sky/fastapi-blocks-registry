@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 
-from .types import UserRepositoryInterface
+from .types.repository import UserRepositoryInterface
 from .models import User
 from .db_models import UserDB
 from .auth_utils import (

@@ -7,8 +7,7 @@ This module provides JWT-based authentication with:
 - Password change for authenticated users
 """
 
-from fastapi import APIRouter
-
 from .router import router
+from .types.jwt import JWTPayload
 
-__all__ = ["router"]
+__all__ = ["router", "JWTPayload"]
