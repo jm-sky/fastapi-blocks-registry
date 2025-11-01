@@ -6,7 +6,6 @@ request parameters, response models, and helper functions.
 
 from typing import Generic, TypeVar
 from pydantic import BaseModel, Field
-from fastapi import Query
 
 
 T = TypeVar('T')

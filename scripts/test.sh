@@ -266,8 +266,10 @@ cd "$REPO_ROOT"
 
 # Check if ruff is available
 if command -v ruff &> /dev/null; then
-    echo "Running ruff..."
-    ruff check fastapi_registry/example_project/app/modules/ --select E,F,W || print_warning "Ruff found some issues"
+    echo "Running ruff on test project..."
+    cd "$TEST_PROJECT"
+    ruff check app/ --select E,F,W || print_warning "Ruff found some issues"
+    cd "$REPO_ROOT"
     print_success "Ruff check completed"
 else
     print_warning "Ruff not installed, skipping"
@@ -275,8 +277,10 @@ fi
 
 # Check if mypy is available
 if command -v mypy &> /dev/null; then
-    echo "Running mypy..."
-    mypy fastapi_registry/example_project/app/modules/logs --ignore-missing-imports --no-error-summary || print_warning "MyPy found some issues"
+    echo "Running mypy on test project..."
+    cd "$TEST_PROJECT"
+    mypy app/ --no-error-summary || print_warning "MyPy found some issues in test project"
+    cd "$REPO_ROOT"
     print_success "MyPy check completed"
 else
     print_warning "MyPy not installed, skipping"

@@ -144,18 +144,18 @@ def _extract_user_id(args: tuple, kwargs: dict) -> str | None:
     - Request object with user state
     """
     if 'user_id' in kwargs:
-        return kwargs['user_id']
+        return str(kwargs['user_id'])
 
     if 'current_user' in kwargs:
         user = kwargs['current_user']
         if hasattr(user, 'id'):
-            return user.id
+            return str(user.id)
 
     # Check for FastAPI Request object
     for arg in args:
         if isinstance(arg, Request):
             if hasattr(arg.state, 'user') and hasattr(arg.state.user, 'id'):
-                return arg.state.user.id
+                return str(arg.state.user.id)
 
     return None
 
@@ -168,16 +168,16 @@ def _extract_request_id(args: tuple, kwargs: dict) -> str | None:
     - Request object with request_id in state or headers
     """
     if 'request_id' in kwargs:
-        return kwargs['request_id']
+        return str(kwargs['request_id'])
 
     # Check for FastAPI Request object
     for arg in args:
         if isinstance(arg, Request):
             # Check state first
             if hasattr(arg.state, 'request_id'):
-                return arg.state.request_id
+                return str(arg.state.request_id)
             # Check headers
             if 'x-request-id' in arg.headers:
-                return arg.headers['x-request-id']
+                return str(arg.headers['x-request-id'])
 
     return None
