@@ -289,41 +289,59 @@ def add_router_to_api_router(
     """
     content = read_file(router_py_path)
 
-    # Prepare import and router registration
+    # Prepare import and router registration strings
     import_line = f"from app.modules.{module_name}.router import router as {module_name}_router"
     router_line = f'api_router.include_router({module_name}_router, prefix="{router_prefix}", tags={tags})'
 
-    # Check if already added
-    if import_line in content:
-        return  # Already added
-
-    # Find where to add the import (after existing imports, before api_router = APIRouter())
     lines = content.splitlines(keepends=True)
 
-    # Find last import line
-    last_import_idx = None
+    # Check if import already exists (as an actual import, not in comments)
+    import_exists = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped == import_line or stripped == import_line + '\n':
+            import_exists = True
+            break
 
-    for i, line in enumerate(lines):
-        if re.match(r"^\s*(?:from|import)\s+", line):
-            last_import_idx = i
+    # Check if router registration already exists (as an actual call, not in comments)
+    router_exists = False
+    for line in lines:
+        stripped = line.strip()
+        if router_line in stripped and not stripped.startswith('#'):
+            router_exists = True
+            break
 
-    # Add import after last import
-    if last_import_idx is not None:
-        lines.insert(last_import_idx + 1, f"{import_line}\n")
-    else:
-        # No imports found, add after docstring or at beginning
-        lines.insert(2, f"\n{import_line}\n")
+    # If both import and registration exist, nothing to do
+    if import_exists and router_exists:
+        return  # Already added
 
-    # Add router registration at the end (before last blank line if exists)
-    # Remove trailing empty lines
-    while lines and lines[-1].strip() == "":
-        lines.pop()
+    # Step 1: Add import if not present
+    if not import_exists:
+        # Find last import line in the file
+        last_import_idx = None
+        for i, line in enumerate(lines):
+            if re.match(r"^\s*(?:from|import)\s+", line):
+                last_import_idx = i
 
-    # Add router registration
-    lines.append(f"\n{router_line}\n")
+        # Insert import after the last import
+        if last_import_idx is not None:
+            lines.insert(last_import_idx + 1, f"{import_line}\n")
+        else:
+            # No imports found, add after module docstring (line 2)
+            lines.insert(2, f"\n{import_line}\n")
 
-    content = "".join(lines)
-    write_file(router_py_path, content)
+    # Step 2: Add router registration if not present
+    if not router_exists:
+        # Remove trailing empty lines for cleaner output
+        while lines and lines[-1].strip() == "":
+            lines.pop()
+
+        # Add router registration at the end
+        lines.append(f"\n{router_line}\n")
+
+    # Write back to file
+    new_content = "".join(lines)
+    write_file(router_py_path, new_content)
 
 
 def create_backup(file_path: Path) -> Path:
