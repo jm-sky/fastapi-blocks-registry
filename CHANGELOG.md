@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+_No unreleased changes yet._
+
+## [0.2.8] - 2025-11-01
+
+### Chore
+- Version bump only; no functional changes (release housekeeping)
+
+## [0.2.7] - 2025-11-03
+
+### Added
+- **Docker development support**: `docker-compose.yml` and related setup for local development
+- **Django-like management commands** for user management under `example_project/cli`
+- **Logs module and search functionality** with repository pattern
+- **Automated testing script** and improved local testing workflow
+- **PostgreSQL support** in the example project and configuration
+
+### Changed
+- **Authentication module** refactor to use `AuthService` and in-memory user store
+- **Database management moved** to core module with updated imports
+- **Enhanced type safety** and organization in authentication and related modules
+- **Updated mypy configuration** for stricter type checking
+- **Updated dependencies** (Typer, Pydantic email support), Python version requirements, and CORS settings
+
+### Fixed
+- Improved error handling in module import tests
+- Exclude modules/common dirs from init; add `common_dependencies` support
+
+### Documentation
+- Enhanced local development and testing documentation
+
+### Chore
+- Version bumps in `pyproject.toml`
+- Updated configuration files and code quality checks
+
+## [0.2.6] - 2025-11-01
+
+### Chore
+- Version bump only; no functional changes (release housekeeping)
+
+## [0.2.5] - 2025-11-01
+
+### Added
+- **Logs module, search functionality, and repository pattern**
+- **Automated testing script** and updated `.gitignore`
+
+### Changed
+- **Authentication module**: improved type safety and organization
+- **mypy configuration**: stricter type checking settings
+- **Pydantic dependency**: include email-related support
+
+### Fixed
+- Better error handling in module import tests
+- Exclude modules/common dirs from init; add `common_dependencies` support
+
+### Chore
+- Updated configuration files and code quality checks
+
+## [0.2.4] - 2025-10-31
+
+### Added
+- **Authentication module refactor** to `AuthService` with in-memory user store
+
+### Changed
+- **Database management moved** to core module with updated imports
+
+### Chore
+- Version bump and removal of obsolete documentation files
+
 ## [0.2.0] - 2025-10-31
 
 ### Changed - Major Architecture Refactor
@@ -111,6 +181,11 @@ If you have modules or customizations based on v0.1.x:
 - Full Pydantic validation
 
 [0.2.0]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.7...v0.2.0
+[0.2.4]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.1...v0.2.4
+[0.2.5]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.4...v0.2.5
+[0.2.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.5...v0.2.6
+[0.2.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.6...v0.2.7
+[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.7...HEAD
 [0.1.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.4...v0.1.6
 [0.1.4]: https://github.com/jm-sky/fastapi-blocks-registry/releases/tag/v0.1.4
