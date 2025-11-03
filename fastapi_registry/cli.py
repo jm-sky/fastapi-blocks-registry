@@ -348,7 +348,6 @@ def init(
             ".gitignore",
             ".flake8",
             ".pylintrc",
-            "mypy.ini",
             "pyproject.toml",
             "README.md",
             "app/",

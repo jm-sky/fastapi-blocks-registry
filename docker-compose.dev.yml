@@ -1,0 +1,63 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:17-alpine
+    container_name: ops-monitor-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-opsmonitor}
+      - POSTGRES_USER=${POSTGRES_USER:-opsmonitor}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Exposed for development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-opsmonitor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Central Application (Development Mode)
+  central:
+    build:
+      context: ..
+      dockerfile: central/Dockerfile.dev
+    image: ops-monitor-central:dev
+    container_name: ops-monitor-central-dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=development
+      - PROJECT_NAME=${PROJECT_NAME:-ops-monitor-central}
+      - CENTRAL_PORT=${CENTRAL_PORT:-8000}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-opsmonitor}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-opsmonitor}
+      - SECRET_KEY=${SECRET_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000"]}
+    ports:
+      - "${CENTRAL_PORT:-8000}:8000"
+    volumes:
+      # Mount source code for hot reload
+      - ../central/app:/app/app
+      - ../central/scripts:/app/scripts
+      - ../central/tests:/app/tests
+      - ../central/main.py:/app/main.py
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    driver: local
