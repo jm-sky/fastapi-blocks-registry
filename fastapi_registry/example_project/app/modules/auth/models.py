@@ -67,6 +67,7 @@ class User(BaseModel):
     name: str
     hashedPassword: str
     isActive: bool = True
+    isAdmin: bool = False
     createdAt: datetime
     resetToken: str | None = None
     resetTokenExpiry: datetime | None = None
@@ -131,5 +132,6 @@ class User(BaseModel):
             "email": self.email,
             "name": self.name,
             "isActive": self.isActive,
+            "isAdmin": self.isAdmin,
             "createdAt": self.createdAt
         }

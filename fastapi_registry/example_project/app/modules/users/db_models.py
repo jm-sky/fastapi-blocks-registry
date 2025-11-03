@@ -26,7 +26,7 @@ class UserDB(Base):
     the existing 'users' table from the auth module.
 
     Attributes:
-        id: Unique identifier (ULID format, 26 chars)
+        id: Unique identifier (ULID format, 36 chars)
         email: User email address (unique, indexed)
         name: User full name
         role: User role (user, admin, etc.)
@@ -38,7 +38,7 @@ class UserDB(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[str] = mapped_column(String(26), primary_key=True)  # ULID
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # ULID
     email: Mapped[str] = mapped_column(
         String(255), unique=True, nullable=False, index=True
     )

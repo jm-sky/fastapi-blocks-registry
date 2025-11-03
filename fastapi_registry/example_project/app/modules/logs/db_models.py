@@ -29,7 +29,7 @@ class LogDB(Base):
     and monitoring purposes.
 
     Attributes:
-        id: Unique identifier (ULID format, 26 chars)
+        id: Unique identifier (ULID format, 36 chars)
         level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         message: Log message
         module: Module/file where log originated
@@ -43,14 +43,14 @@ class LogDB(Base):
 
     __tablename__ = "logs"
 
-    id: Mapped[str] = mapped_column(String(26), primary_key=True)  # ULID
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # ULID
     level: Mapped[str] = mapped_column(
         String(20), nullable=False, index=True
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
     module: Mapped[str] = mapped_column(String(255), nullable=True)
     function: Mapped[str] = mapped_column(String(255), nullable=True)
-    user_id: Mapped[str | None] = mapped_column(String(26), nullable=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     request_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     traceback: Mapped[str | None] = mapped_column(Text, nullable=True)
     extra_data: Mapped[str | None] = mapped_column(Text, nullable=True)

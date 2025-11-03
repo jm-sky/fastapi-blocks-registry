@@ -53,7 +53,7 @@ class UserRepository(UserRepositoryInterface):
         self.db = db
 
 
-    async def create_user(self, email: str, password: str, full_name: str) -> User:
+    async def create_user(self, email: str, password: str, full_name: str, is_admin: bool = False) -> User:
         """Create a new user in database."""
         # Normalize email to lowercase for case-insensitive storage
         normalized_email = email.lower().strip()
@@ -79,6 +79,7 @@ class UserRepository(UserRepositoryInterface):
             name=full_name,
             hashed_password=get_password_hash(password),
             is_active=True,
+            is_admin=is_admin,
             created_at=datetime.now(UTC)
         )
 
@@ -93,6 +94,7 @@ class UserRepository(UserRepositoryInterface):
             name=user_db.name,
             hashedPassword=user_db.hashed_password,
             isActive=user_db.is_active,
+            isAdmin=user_db.is_admin,
             createdAt=user_db.created_at
         )
 
@@ -115,6 +117,7 @@ class UserRepository(UserRepositoryInterface):
             name=user_db.name,
             hashedPassword=user_db.hashed_password,
             isActive=user_db.is_active,
+            isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
             resetTokenExpiry=user_db.reset_token_expiry
@@ -137,6 +140,7 @@ class UserRepository(UserRepositoryInterface):
             name=user_db.name,
             hashedPassword=user_db.hashed_password,
             isActive=user_db.is_active,
+            isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
             resetTokenExpiry=user_db.reset_token_expiry
@@ -157,6 +161,7 @@ class UserRepository(UserRepositoryInterface):
                 name=user_db.name,
                 hashedPassword=user_db.hashed_password,
                 isActive=user_db.is_active,
+                isAdmin=user_db.is_admin,
                 createdAt=user_db.created_at,
                 resetToken=user_db.reset_token,
                 resetTokenExpiry=user_db.reset_token_expiry
@@ -180,6 +185,7 @@ class UserRepository(UserRepositoryInterface):
         user_db.name = user.name
         user_db.hashed_password = user.hashedPassword
         user_db.is_active = user.isActive
+        user_db.is_admin = user.isAdmin
         user_db.reset_token = user.resetToken
         user_db.reset_token_expiry = user.resetTokenExpiry
 
@@ -193,6 +199,7 @@ class UserRepository(UserRepositoryInterface):
             name=user_db.name,
             hashedPassword=user_db.hashed_password,
             isActive=user_db.is_active,
+            isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
             resetTokenExpiry=user_db.reset_token_expiry
@@ -232,6 +239,7 @@ class UserRepository(UserRepositoryInterface):
             name=user_db.name,
             hashedPassword=user_db.hashed_password,
             isActive=user_db.is_active,
+            isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
             resetTokenExpiry=user_db.reset_token_expiry

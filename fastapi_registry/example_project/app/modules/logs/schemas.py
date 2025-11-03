@@ -36,7 +36,7 @@ class LogCreateRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000)
     module: str | None = Field(None, max_length=255)
     function: str | None = Field(None, max_length=255)
-    userId: str | None = Field(None, max_length=26)
+    userId: str | None = Field(None, max_length=36)
     requestId: str | None = Field(None, max_length=100)
     traceback: str | None = None
     extraData: str | None = None

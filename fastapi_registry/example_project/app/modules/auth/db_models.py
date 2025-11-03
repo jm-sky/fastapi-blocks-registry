@@ -28,11 +28,12 @@ class UserDB(Base):
     extended with additional fields from the users module (like 'role').
 
     Attributes:
-        id: Unique identifier (ULID format, 26 chars)
+        id: Unique identifier (ULID format, 36 chars)
         email: User email address (unique, indexed)
         name: User full name
         hashed_password: Bcrypt hashed password
         is_active: Whether the user account is active
+        is_admin: Whether the user has administrator privileges
         created_at: Account creation timestamp
         reset_token: Password reset token (JWT)
         reset_token_expiry: Password reset token expiration time
@@ -41,13 +42,14 @@ class UserDB(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[str] = mapped_column(String(26), primary_key=True)  # ULID
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # ULID
     email: Mapped[str] = mapped_column(
         String(255), unique=True, nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),

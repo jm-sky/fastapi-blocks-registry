@@ -20,6 +20,22 @@ app = typer.Typer(
     add_completion=True,
 )
 
+# Create manage subcommand app
+manage_app = typer.Typer(
+    name="manage",
+    help="Django-like management commands for FastAPI projects",
+)
+
+# Create users subcommand under manage
+users_app = typer.Typer(
+    name="users",
+    help="User management commands",
+)
+
+# Register subcommands
+manage_app.add_typer(users_app, name="users")
+app.add_typer(manage_app, name="manage")
+
 
 def version_callback(value: bool) -> None:
     """Show version information."""
@@ -402,6 +418,104 @@ def version() -> None:
     rprint("\n[bold cyan]FastAPI Blocks Registry[/bold cyan]")
     rprint(f"[dim]{__description__}[/dim]")
     rprint(f"\nVersion: [yellow]{__version__}[/yellow]\n")
+
+
+# ============================================================================
+# Management Commands (Django-like)
+# ============================================================================
+
+
+@users_app.command("create")
+def users_create(
+    project_path: Path | None = typer.Option(
+        None,
+        "--project-path",
+        "-p",
+        help="Path to FastAPI project (defaults to current directory)",
+    ),
+    email: str | None = typer.Option(None, "--email", "-e", help="User email address"),
+    name: str | None = typer.Option(None, "--name", "-n", help="User full name"),
+    password: str | None = typer.Option(
+        None, "--password", help="User password (not recommended, will prompt if not provided)"
+    ),
+    admin: bool = typer.Option(False, "--admin", "-a", help="Create as administrator"),
+    no_input: bool = typer.Option(
+        False, "--no-input", help="Skip interactive prompts (requires all options)"
+    ),
+) -> None:
+    """Create a new user interactively with rich prompts and validation."""
+    from fastapi_registry.core.commands.users import CreateUserCommand
+
+    command = CreateUserCommand(
+        project_path=project_path,
+        email=email,
+        name=name,
+        password=password,
+        is_admin=admin,
+        no_input=no_input,
+    )
+
+    exit_code = command.execute()
+    if exit_code != 0:
+        raise typer.Exit(exit_code)
+
+
+@users_app.command("list")
+def users_list(
+    project_path: Path | None = typer.Option(
+        None,
+        "--project-path",
+        "-p",
+        help="Path to FastAPI project (defaults to current directory)",
+    ),
+    admins_only: bool = typer.Option(False, "--admins", help="Show only administrators"),
+    users_only: bool = typer.Option(False, "--users", help="Show only regular users"),
+    active_only: bool = typer.Option(False, "--active", help="Show only active users"),
+    inactive_only: bool = typer.Option(False, "--inactive", help="Show only inactive users"),
+    limit: int | None = typer.Option(None, "--limit", "-l", help="Maximum number of users to show"),
+) -> None:
+    """List all users in a beautiful table with filters."""
+    from fastapi_registry.core.commands.users import ListUsersCommand
+
+    # Determine filters
+    filter_admin = True if admins_only else (False if users_only else None)
+    filter_active = True if active_only else (False if inactive_only else None)
+
+    command = ListUsersCommand(
+        project_path=project_path,
+        filter_admin=filter_admin,
+        filter_active=filter_active,
+        limit=limit,
+    )
+
+    exit_code = command.execute()
+    if exit_code != 0:
+        raise typer.Exit(exit_code)
+
+
+@users_app.command("delete")
+def users_delete(
+    identifier: str | None = typer.Argument(None, help="User email or ID to delete"),
+    project_path: Path | None = typer.Option(
+        None,
+        "--project-path",
+        "-p",
+        help="Path to FastAPI project (defaults to current directory)",
+    ),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
+) -> None:
+    """Delete a user by email or ID with confirmation."""
+    from fastapi_registry.core.commands.users import DeleteUserCommand
+
+    command = DeleteUserCommand(
+        project_path=project_path,
+        identifier=identifier,
+        yes=yes,
+    )
+
+    exit_code = command.execute()
+    if exit_code != 0:
+        raise typer.Exit(exit_code)
 
 
 def main() -> None:
