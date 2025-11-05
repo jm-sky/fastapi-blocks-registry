@@ -9,6 +9,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
+## [0.2.9] - 2025-01-05
+
+### Added
+- **Two-Factor Authentication (2FA) module**: Complete implementation of TOTP and WebAuthn/Passkeys support
+  - **TOTP (Time-based One-Time Password)**: Full support for authenticator apps (Google Authenticator, Authy, etc.)
+    - Setup flow with QR code generation
+    - Verification with time window support
+    - Backup codes (10 single-use codes, hashed storage)
+    - Regeneration and disable functionality
+    - Per-user rate limiting and account lockout
+  - **WebAuthn/Passkeys**: Support for hardware security keys and biometric authentication
+    - YubiKey, Touch ID, Face ID, Windows Hello compatibility
+    - Registration and authentication flows
+    - Multiple passkeys per user
+    - Credential management (list, rename, delete)
+  - **Security features**:
+    - Encrypted TOTP secrets and WebAuthn public keys (Fernet encryption)
+    - Hashed backup codes (SHA256)
+    - Per-user rate limiting (configurable max attempts and lockout)
+    - Global rate limiting on all endpoints
+    - Audit logging integration
+  - **API endpoints** (8 total):
+    - `POST /two-factor/totp/initiate` - Start TOTP setup
+    - `POST /two-factor/totp/verify` - Verify TOTP setup
+    - `GET /two-factor/totp/status` - Get TOTP status
+    - `POST /two-factor/totp/regenerate-backup-codes` - Regenerate backup codes
+    - `POST /two-factor/totp/disable` - Disable TOTP
+    - `POST /two-factor/totp/verify-login` - Verify 2FA during login
+    - `POST /two-factor/webauthn/register/initiate` - Start passkey registration
+    - `POST /two-factor/webauthn/register/complete` - Complete passkey registration
+  - **Integration with auth module**:
+    - `AuthServiceWith2FA` for seamless 2FA integration
+    - Backward compatible - works with existing auth module
+    - Optional dependency injection pattern
+- **Unified JWT payload schema**: Complete JWT payload structure matching frontend TypeScript interface
+  - All tokens now include `email`, `tfaPending`, `tfaVerified`, `tfaMethod` fields
+  - Support for tenant context (`tid`, `trol`) for future multi-tenant features
+  - TypedDict for token creation options (`CreateAccessTokenOptions`, `CreateRefreshTokenOptions`)
+  - Extended `TwoFactorTokenPayload` with complete 2FA status fields
+
+### Changed
+- **JWT token creation functions**: All token creation functions now use TypedDict instead of `dict[str, Any]`
+- **Access tokens**: Now include `email`, `tid`, `trol`, `tfaPending`, `tfaVerified`, `tfaMethod` fields
+- **Refresh tokens**: Now preserve 2FA state (`tfaVerified`, `tfaMethod`) across token refresh cycles
+- **2FA verification flow**: `verify_totp_login()` now sets `tfaVerified: true` and `tfaMethod: "totp"` in access tokens
+- **Login endpoints**: Both `AuthService.login_user()` and `AuthServiceWith2FA.login_user()` now include email and 2FA fields
+- **CLI test script**: Extended to include tests for `two_factor` module installation
+
+### Fixed
+- **Security**: Added validation in `get_current_user()` to reject tokens with `tfaPending: true` (prevents use of unverified 2FA tokens)
+- **Token timestamps**: Fixed `exp` and `iat` fields to use Unix timestamps (int) instead of datetime objects
+- **2FA token payload**: Now includes `email` field for better frontend integration
+
+### Documentation
+- Added comprehensive JWT flow documentation (`docs/JWT_FLOW.md`) - Complete guide to JWT states, flows, and 2FA integration
+- Added JWT compatibility analysis (`docs/JWT_COMPATIBILITY_ANALYSIS.md`) - Backend compatibility assessment
+- Updated `2FA_MODULE_PLAN.md` with link to JWT flow documentation
+- Updated type definitions with detailed docstrings linking to documentation
+
+### Technical Details
+- **Module structure**: Follows repository pattern, service layer, and dependency injection (consistent with `auth` module)
+- **Database models**: SQLAlchemy ORM models for `totp_configs` and `passkeys` tables
+- **Encryption**: Fernet (symmetric encryption) for TOTP secrets and WebAuthn keys
+- **Hashing**: SHA256 for backup codes (one-way, non-reversible)
+- All token creation functions now explicitly use TypedDict for type safety
+- Backward compatible: Old tokens without new fields will still work
+- Refresh token preserves 2FA verification state but does NOT preserve tenant context (tid/trol) for security
+- Module added to `registry.json` with full configuration and dependencies
+
 ## [0.2.8] - 2025-11-01
 
 ### Chore
@@ -185,7 +254,9 @@ If you have modules or customizations based on v0.1.x:
 [0.2.5]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.4...v0.2.5
 [0.2.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.5...v0.2.6
 [0.2.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.6...v0.2.7
-[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.7...HEAD
+[0.2.8]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.7...v0.2.8
+[0.2.9]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.8...v0.2.9
+[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.9...HEAD
 [0.1.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.4...v0.1.6
 [0.1.4]: https://github.com/jm-sky/fastapi-blocks-registry/releases/tag/v0.1.4
