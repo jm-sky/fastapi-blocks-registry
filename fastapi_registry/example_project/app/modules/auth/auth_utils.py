@@ -1,13 +1,12 @@
 """Authentication utilities for JWT token management and password hashing."""
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
 import jwt
 from passlib.context import CryptContext
 
 from ...core.config import settings
-from .types.jwt import JWTPayload
+from .types.jwt import CreateAccessTokenOptions, CreateRefreshTokenOptions, JWTPayload
 
 
 # Password hashing context
@@ -25,23 +24,37 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(
-    data: dict[str, Any],
-    expires_delta: timedelta | None = None
+    data: CreateAccessTokenOptions,
+    expires_delta: timedelta | None = None,
 ) -> str:
-    """Create a JWT access token."""
-    to_encode = data.copy()
+    """Create a JWT access token with optional tenant and 2FA context.
 
+    Args:
+        data: Token options including sub (required), email, tid, trol, tfaVerified, tfaMethod
+        expires_delta: Optional custom expiration time. If not provided, uses default from settings.
+
+    Returns:
+        Encoded JWT token string
+    """
+    now = datetime.now(UTC)
     if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=settings.security.access_token_expires_minutes)
+        expire = now + timedelta(minutes=settings.security.access_token_expires_minutes)
 
-    to_encode.update({
-        "exp": expire,
+    payload: JWTPayload = {
+        "sub": data["sub"],
+        "email": data.get("email"),
+        "tid": data.get("tid"),
+        "trol": data.get("trol"),
         "type": "access",
-        "iat": datetime.now(UTC)
-    })
-    encoded_jwt = jwt.encode(to_encode, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
+        "exp": int(expire.timestamp()),
+        "iat": int(now.timestamp()),
+        "tfaPending": False,
+        "tfaVerified": data.get("tfaVerified", False),
+        "tfaMethod": data.get("tfaMethod"),
+    }
+    encoded_jwt = jwt.encode(dict(payload), settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
     return encoded_jwt
 
 
@@ -58,27 +71,42 @@ def verify_token(token: str) -> JWTPayload:
         raise InvalidTokenError()
 
 
-def create_refresh_token(data: dict[str, Any]) -> str:
-    """Create a JWT refresh token with longer expiration."""
-    to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(days=settings.security.refresh_token_expires_days)
-    to_encode.update({
-        "exp": expire,
+def create_refresh_token(data: CreateRefreshTokenOptions) -> str:
+    """Create a JWT refresh token with longer expiration and 2FA context.
+
+    Args:
+        data: Token options including sub (required), email, tfaVerified, tfaMethod
+            Note: tid/trol are NOT preserved in refresh tokens (security).
+
+    Returns:
+        Encoded JWT token string
+    """
+    now = datetime.now(UTC)
+    expire = now + timedelta(days=settings.security.refresh_token_expires_days)
+
+    payload: JWTPayload = {
+        "sub": data["sub"],
+        "email": data.get("email"),
         "type": "refresh",
-        "iat": datetime.now(UTC)
-    })
-    encoded_jwt = jwt.encode(to_encode, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
+        "exp": int(expire.timestamp()),
+        "iat": int(now.timestamp()),
+        "tfaVerified": data.get("tfaVerified", False),
+        "tfaMethod": data.get("tfaMethod"),
+        # NOTE: tid/trol are NOT preserved in refresh token (security)
+    }
+    encoded_jwt = jwt.encode(dict(payload), settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
     return encoded_jwt
 
 
-def create_password_reset_token(data: dict[str, Any]) -> str:
+def create_password_reset_token(data: dict[str, str]) -> str:
     """Create a JWT password reset token with 1-hour expiration."""
-    to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(hours=settings.security.password_reset_token_expires_hours)
-    to_encode.update({
-        "exp": expire,
+    now = datetime.now(UTC)
+    expire = now + timedelta(hours=settings.security.password_reset_token_expires_hours)
+    to_encode = {
+        **data,
+        "exp": int(expire.timestamp()),
         "type": "password_reset",
-        "iat": datetime.now(UTC)
-    })
+        "iat": int(now.timestamp()),
+    }
     encoded_jwt = jwt.encode(to_encode, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
     return encoded_jwt

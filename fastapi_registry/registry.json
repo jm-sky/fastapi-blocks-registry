@@ -81,5 +81,53 @@
       "REST API for log management"
     ],
     "notes": "Use @log_errors decorator to automatically log exceptions. The decorator extracts user_id, request_id, and log_service from function parameters. See logs/README.md for usage examples."
+  },
+  "two_factor": {
+    "name": "Two-Factor Authentication",
+    "description": "TOTP and WebAuthn/Passkeys support for enhanced security. Includes backup codes, rate limiting, and audit logging.",
+    "version": "1.0.0",
+    "path": "example_project/app/modules/two_factor",
+    "dependencies": [
+      "pyotp>=2.9.0",
+      "webauthn>=2.3.0",
+      "cryptography>=41.0.0"
+    ],
+    "module_dependencies": ["auth"],
+    "common_dependencies": [],
+    "python_version": ">=3.12",
+    "env": {
+      "TOTP_ISSUER": "FastAPI App",
+      "TOTP_ALGORITHM": "SHA1",
+      "TOTP_PERIOD": "30",
+      "TOTP_DIGITS": "6",
+      "TOTP_TIME_WINDOW": "1",
+      "BACKUP_CODES_COUNT": "10",
+      "WEBAUTHN_RP_ID": "localhost",
+      "WEBAUTHN_RP_NAME": "FastAPI App",
+      "WEBAUTHN_ORIGIN": "http://localhost:3000",
+      "WEBAUTHN_TIMEOUT": "60000",
+      "TWO_FACTOR_TOKEN_EXPIRES_MINUTES": "5",
+      "SETUP_TOKEN_EXPIRES_MINUTES": "10",
+      "MAX_VERIFICATION_ATTEMPTS": "5",
+      "VERIFICATION_LOCKOUT_MINUTES": "15",
+      "TWO_FACTOR_ENCRYPTION_KEY": ""
+    },
+    "settings_class": "TwoFactorSettings",
+    "router_prefix": "/two-factor",
+    "tags": ["Two-Factor Authentication", "Security", "WebAuthn", "TOTP"],
+    "author": "FastAPI Blocks Registry",
+    "repository": "https://github.com/yourusername/fastapi-blocks-registry",
+    "features": [
+      "TOTP (Time-based One-Time Password) support",
+      "WebAuthn/Passkeys support (YubiKey, Touch ID, Face ID, etc.)",
+      "Backup codes (hashed, single-use)",
+      "Per-user rate limiting and account lockout",
+      "Encrypted TOTP secrets and WebAuthn keys",
+      "Multiple 2FA methods per user",
+      "Admin emergency recovery",
+      "Audit logging integration",
+      "Backward compatible with existing projects"
+    ],
+    "notes": "IMPORTANT: WebAuthn requires HTTPS in production (localhost exempt for dev). Update auth/dependencies.py to use AuthServiceWith2FA for 2FA integration. See README.md for integration guide."
   }
 }

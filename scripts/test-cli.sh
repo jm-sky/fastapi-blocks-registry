@@ -151,6 +151,53 @@ else
     exit 1
 fi
 
+echo -e "\n${YELLOW}14. Testing add two_factor module command...${NC}"
+fastapi-registry add two_factor --yes
+
+if [ ! -d "/tmp/test-fastapi-project/app/modules/two_factor" ]; then
+    echo -e "${RED}❌ Two-factor module not added!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ Two-factor module added${NC}"
+
+echo -e "\n${YELLOW}15. Checking two_factor module files...${NC}"
+two_factor_files=(
+    "/tmp/test-fastapi-project/app/modules/two_factor/router.py"
+    "/tmp/test-fastapi-project/app/modules/two_factor/service.py"
+    "/tmp/test-fastapi-project/app/modules/two_factor/schemas.py"
+    "/tmp/test-fastapi-project/app/modules/two_factor/db_models.py"
+    "/tmp/test-fastapi-project/app/modules/two_factor/crypto_utils.py"
+    "/tmp/test-fastapi-project/app/modules/two_factor/totp_utils.py"
+    "/tmp/test-fastapi-project/app/modules/two_factor/webauthn_utils.py"
+)
+
+for file in "${two_factor_files[@]}"; do
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}❌ Missing two_factor file: $file${NC}"
+        exit 1
+    fi
+done
+echo -e "${GREEN}✅ All two_factor module files present${NC}"
+
+echo -e "\n${YELLOW}16. Checking two_factor dependencies...${NC}"
+if grep -q "pyotp" /tmp/test-fastapi-project/requirements.txt && \
+   grep -q "webauthn" /tmp/test-fastapi-project/requirements.txt && \
+   grep -q "cryptography" /tmp/test-fastapi-project/requirements.txt; then
+    echo -e "${GREEN}✅ Two-factor dependencies added to requirements.txt${NC}"
+else
+    echo -e "${RED}❌ Two-factor dependencies NOT added${NC}"
+    exit 1
+fi
+
+echo -e "\n${YELLOW}17. Checking two_factor environment variables...${NC}"
+if grep -q "TOTP_ISSUER" /tmp/test-fastapi-project/.env && \
+   grep -q "WEBAUTHN_RP_ID" /tmp/test-fastapi-project/.env; then
+    echo -e "${GREEN}✅ Two-factor env variables added${NC}"
+else
+    echo -e "${RED}❌ Two-factor env variables NOT added${NC}"
+    exit 1
+fi
+
 echo -e "\n${GREEN}=================================================="
 echo -e "✅ ALL TESTS PASSED!"
 echo -e "==================================================${NC}\n"

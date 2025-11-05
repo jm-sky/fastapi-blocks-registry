@@ -25,3 +25,12 @@ async def health_check():
 # You can also manually register module routers:
 # from app.modules.auth.router import router as auth_router
 # api_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+
+# Register Two-Factor module (added during development)
+try:
+    from app.modules.two_factor.router import router as two_factor_router
+
+    api_router.include_router(two_factor_router)
+except Exception:
+    # Module may be absent in some builds; ignore if not present
+    pass

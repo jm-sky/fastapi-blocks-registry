@@ -52,6 +52,16 @@ async def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # SECURITY: Reject tokens with tfaPending: true
+        # These tokens are issued after password verification but before 2FA verification
+        # and should not be used for normal API requests
+        if payload.get("tfaPending") is True:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="2FA verification required. Token is pending 2FA verification.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         # Get user ID from token
         user_id = payload.get("sub")
         if not user_id:
