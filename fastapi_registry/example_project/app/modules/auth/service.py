@@ -80,8 +80,22 @@ class AuthService:
             raise InvalidCredentialsError("User account is inactive")
 
         # Generate tokens
-        access_token = create_access_token(data={"sub": user.id})
-        refresh_token = create_refresh_token(data={"sub": user.id})
+        access_token = create_access_token(
+            data={
+                "sub": user.id,
+                "email": user.email,
+                "tfaVerified": False,
+                "tfaMethod": None,
+            }
+        )
+        refresh_token = create_refresh_token(
+            data={
+                "sub": user.id,
+                "email": user.email,
+                "tfaVerified": False,
+                "tfaMethod": None,
+            }
+        )
 
         return LoginResponse(
             user=UserResponse(**user.to_response()),
@@ -122,9 +136,28 @@ class AuthService:
             if not user or not user.isActive:
                 raise InvalidTokenError("User not found or inactive")
 
-            # Generate new tokens
-            new_access_token = create_access_token(data={"sub": user_id})
-            new_refresh_token = create_refresh_token(data={"sub": user_id})
+            # Preserve 2FA state from refresh token
+            old_tfa_verified = payload.get("tfaVerified", False)
+            old_tfa_method = payload.get("tfaMethod")
+
+            # Generate new tokens with preserved 2FA state
+            new_access_token = create_access_token(
+                data={
+                    "sub": user_id,
+                    "email": user.email,
+                    "tfaVerified": old_tfa_verified,
+                    "tfaMethod": old_tfa_method,
+                    # tid/trol NOT preserved (security)
+                }
+            )
+            new_refresh_token = create_refresh_token(
+                data={
+                    "sub": user_id,
+                    "email": user.email,
+                    "tfaVerified": old_tfa_verified,
+                    "tfaMethod": old_tfa_method,
+                }
+            )
 
             return {
                 "accessToken": new_access_token,
