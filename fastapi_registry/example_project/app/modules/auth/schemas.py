@@ -159,3 +159,19 @@ class ChangePasswordRequest(BaseModel):
     def validate_password(cls, v: str) -> str:
         """Validate password meets strength requirements."""
         return validate_password_strength(v)
+
+
+class DeleteAccountRequest(BaseModel):
+    """Delete account request schema."""
+
+    password: str | None = Field(
+        None,
+        min_length=1,
+        max_length=100,
+        description="Current password for confirmation (optional but recommended)"
+    )
+    confirmation: str = Field(
+        ...,
+        min_length=1,
+        description="Confirmation phrase like 'DELETE' or user email"
+    )

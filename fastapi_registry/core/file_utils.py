@@ -354,3 +354,55 @@ def create_backup(file_path: Path) -> Path:
     backup_path = file_path.with_suffix(file_path.suffix + ".bak")
     shutil.copy2(file_path, backup_path)
     return backup_path
+
+
+def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bool = True) -> None:
+    """
+    Update .gitignore to add exception for logs module.
+
+    This prevents the logs module from being ignored by common .gitignore patterns
+    that ignore 'logs/' directories.
+
+    Args:
+        gitignore_path: Path to .gitignore file
+        create_if_missing: Create file if it doesn't exist
+    """
+    # Modules that need .gitignore exceptions
+    MODULES_NEEDING_EXCEPTION = ["logs"]
+    
+    if not gitignore_path.exists():
+        if create_if_missing:
+            write_file(gitignore_path, "")
+        else:
+            return  # Don't create if not requested
+
+    content = read_file(gitignore_path)
+    
+    # Check if exception already exists
+    exception_pattern = r"!app/modules/logs"
+    if re.search(exception_pattern, content):
+        return  # Already added
+    
+    # Find where to add the exception (after "logs/" pattern if it exists)
+    logs_pattern = re.compile(r"^logs/", re.MULTILINE)
+    match = logs_pattern.search(content)
+    
+    if match:
+        # Add exception right after the logs/ pattern
+        lines = content.splitlines(keepends=True)
+        match_line = content[:match.end()].count("\n")
+        
+        # Insert exception with comment
+        exception_line = f"!app/modules/logs  # Added by fastapi-registry for logs module\n"
+        lines.insert(match_line + 1, exception_line)
+        content = "".join(lines)
+    else:
+        # Add logs/ pattern and exception if not present
+        if content and not content.endswith("\n"):
+            content += "\n"
+        content += "\n# Logs\n"
+        content += "*.log\n"
+        content += "logs/\n"
+        content += "!app/modules/logs  # Added by fastapi-registry for logs module\n"
+    
+    write_file(gitignore_path, content)

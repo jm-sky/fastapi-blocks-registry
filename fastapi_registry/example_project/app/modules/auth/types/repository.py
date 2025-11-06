@@ -117,3 +117,16 @@ class UserRepositoryInterface(ABC):
             True if password changed successfully, False otherwise
         """
         ...
+
+    @abstractmethod
+    async def delete_user(self, user_id: str, soft_delete: bool = True) -> bool:
+        """Delete user account (soft delete by default).
+
+        Args:
+            user_id: User ID to delete
+            soft_delete: If True, marks user as deleted (soft delete). If False, physically removes user.
+
+        Returns:
+            True if user deleted successfully, False otherwise
+        """
+        ...

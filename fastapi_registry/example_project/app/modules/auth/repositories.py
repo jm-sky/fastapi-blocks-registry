@@ -269,6 +269,32 @@ class UserRepository(UserRepositoryInterface):
         await self.update_user(user)
         return True
 
+    async def delete_user(self, user_id: str, soft_delete: bool = True) -> bool:
+        """Delete user account (soft delete by default)."""
+        stmt = select(UserDB).where(UserDB.id == user_id)
+        result = await self.db.execute(stmt)
+        user_db = result.scalar_one_or_none()
+        
+        if not user_db:
+            return False
+
+        if soft_delete:
+            # Soft delete: mark as deleted and anonymize data
+            user_db.deleted_at = datetime.now(UTC)
+            user_db.is_active = False
+            # Anonymize email and name for GDPR compliance
+            user_db.email = f"deleted_{user_db.id}@deleted.local"
+            user_db.name = "Deleted User"
+            # Clear sensitive data
+            user_db.reset_token = None
+            user_db.reset_token_expiry = None
+        else:
+            # Hard delete: physically remove from database
+            await self.db.delete(user_db)
+
+        await self.db.commit()
+        return True
+
 
 def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepositoryInterface:
     """

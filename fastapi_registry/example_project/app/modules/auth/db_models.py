@@ -60,6 +60,11 @@ class UserDB(Base):
         DateTime(timezone=True),
         nullable=True
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None
+    )
 
     def __repr__(self) -> str:
         return f"<UserDB(id={self.id}, email={self.email}, name={self.name})>"

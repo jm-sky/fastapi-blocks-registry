@@ -316,6 +316,62 @@ class RecaptchaSettings(BaseSettings):
         return v
 
 
+class EmailSettings(BaseSettings):
+    """Email configuration."""
+
+    model_config = _base_config
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias="EMAIL_ENABLED",
+        description="Enable email service"
+    )
+    adapter: str = Field(
+        default="file",
+        validation_alias="EMAIL_ADAPTER",
+        description="Email adapter: 'file' (development) or 'smtp' (production)"
+    )
+
+    # SMTP settings (if adapter == "smtp")
+    smtp_host: str = Field(
+        default="",
+        validation_alias="SMTP_HOST",
+        description="SMTP server hostname"
+    )
+    smtp_port: int = Field(
+        default=587,
+        validation_alias="SMTP_PORT",
+        description="SMTP server port (587 for TLS, 465 for SSL)"
+    )
+    smtp_user: str = Field(
+        default="",
+        validation_alias="SMTP_USER",
+        description="SMTP username"
+    )
+    smtp_password: str = Field(
+        default="",
+        validation_alias="SMTP_PASSWORD",
+        description="SMTP password"
+    )
+    smtp_from: str = Field(
+        default="noreply@example.com",
+        validation_alias="SMTP_FROM",
+        description="Default sender email address"
+    )
+    smtp_use_tls: bool = Field(
+        default=True,
+        validation_alias="SMTP_USE_TLS",
+        description="Use TLS encryption for SMTP"
+    )
+
+    # File adapter settings (if adapter == "file")
+    file_path: str = Field(
+        default="./emails",
+        validation_alias="EMAIL_FILE_PATH",
+        description="Directory path for saving emails (file adapter)"
+    )
+
+
 class Settings(BaseSettings):
     """
     Main application settings composed of nested configuration classes.
@@ -334,6 +390,7 @@ class Settings(BaseSettings):
     rate_limit: RateLimitSettings = Field(default_factory=RateLimitSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     recaptcha: RecaptchaSettings = Field(default_factory=RecaptchaSettings)
+    email: EmailSettings = Field(default_factory=EmailSettings)
 
     # Legacy compatibility - still accessible at root level
     frontend_url: str = Field(

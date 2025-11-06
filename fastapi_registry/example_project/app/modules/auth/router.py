@@ -26,6 +26,7 @@ from .exceptions import (
 )
 from .schemas import (
     ChangePasswordRequest,
+    DeleteAccountRequest,
     ForgotPasswordRequest,
     LoginResponse,
     MessageResponse,
@@ -220,10 +221,13 @@ async def change_password(
     - ✅ Current password verification required
     """
     try:
+        # Get client IP address for security notification
+        client_ip = request.client.host if request.client else None
         await auth_service.change_password(
             user_id=current_user.id,
             current_password=request_data.currentPassword,
-            new_password=request_data.newPassword
+            new_password=request_data.newPassword,
+            ip_address=client_ip
         )
         return MessageResponse(message="Password changed successfully")
     except InvalidCredentialsError:
@@ -254,3 +258,47 @@ async def get_current_user_info(current_user: CurrentUser) -> UserResponse:
     - ⚪ Rate limiting: Not needed (read-only, already auth-protected)
     """
     return UserResponse(**current_user.to_response())
+
+
+@router.delete(
+    "/account",
+    response_model=MessageResponse,
+    summary="Delete account",
+    description="Delete current user's account (soft delete by default)",
+    tags=["Authentication"]
+)
+@rate_limit("1/day")  # Prevent abuse - only allow one deletion per day
+async def delete_account(
+    request_data: DeleteAccountRequest,
+    current_user: CurrentUser,
+    auth_service: AuthServiceDep,
+    request: Request
+) -> MessageResponse:
+    """
+    Delete current user's account.
+
+    Security features:
+    - ✅ Rate limiting: 1 request/day (enabled - CRITICAL)
+    - ✅ Authentication required (JWT token)
+    - ✅ Password verification (optional but recommended)
+    - ✅ Confirmation phrase required
+    - ✅ Soft delete by default (GDPR compliant with data anonymization)
+    """
+    try:
+        await auth_service.delete_account(
+            user_id=current_user.id,
+            password=request_data.password,
+            confirmation=request_data.confirmation,
+            soft_delete=True
+        )
+        return MessageResponse(message="Account has been deleted successfully")
+    except InvalidCredentialsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )

@@ -9,6 +9,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
+## [0.2.12] - 2025-11-06
+
+### Added
+- **Account deletion endpoint**: Complete user account deletion functionality
+  - `DELETE /api/auth/account` endpoint with authentication and rate limiting (1/day)
+  - Soft delete implementation with GDPR-compliant data anonymization
+  - Password verification and confirmation phrase validation
+  - Email notification on account deletion
+  - `DeleteAccountRequest` schema with optional password and required confirmation
+  - `delete_user()` method in repository with soft/hard delete support
+  - `delete_account()` method in service layer with validation
+  - `deleted_at` field added to `UserDB` model for soft delete tracking
+
+- **Email service with adapter pattern**: Complete email notification system
+  - `EmailAdapter` interface for pluggable email backends
+  - `FileEmailAdapter` for development/testing (saves emails to files)
+  - `SMTPEmailAdapter` for production (sends via SMTP)
+  - `EmailService` with Jinja2 template support
+  - `EmailSettings` configuration class in `config.py`
+  - Email templates (HTML with Jinja2):
+    - `welcome.html` - Welcome email for new user registration
+    - `password_reset.html` - Password reset link with expiration info
+    - `password_changed.html` - Security notification with IP address
+    - `account_deleted.html` - Account deletion confirmation
+  - Email integration with auth module:
+    - Welcome email sent on user registration
+    - Password reset email with secure token link
+    - Password changed notification with IP tracking
+    - Account deletion confirmation email
+
+- **Automatic .gitignore exception for logs module**: Resolves naming conflict
+  - `update_gitignore_for_logs_module()` function in `file_utils.py`
+  - Automatic addition of `!app/modules/logs` exception during module installation
+  - Prevents logs module from being ignored by common `.gitignore` patterns
+  - Includes comment explaining the exception origin
+  - Prevents duplicate exceptions if already present
+
+### Changed
+- **Auth module dependencies**: Added `Jinja2>=3.1.0` for email template rendering
+- **Password change endpoint**: Now includes IP address tracking for security notifications
+- **Module installer**: Enhanced to automatically update `.gitignore` for modules requiring exceptions
+
+### Fixed
+- **Module logs naming conflict**: Resolved issue where `logs/` pattern in `.gitignore` could ignore the logs module
+  - Solution: Automatic exception addition during module installation
+  - No breaking changes required (module name unchanged)
+
+### Technical Details
+- Email service uses adapter pattern for easy backend switching
+- File adapter saves emails to `./emails/{date}/{timestamp}_{email}.html` with metadata JSON
+- SMTP adapter supports both TLS (port 587) and SSL (port 465)
+- Email templates use Jinja2 with auto-escaping for security
+- Account deletion uses soft delete by default (GDPR compliant)
+- Data anonymization: email and name are replaced with anonymized values
+- Rate limiting on account deletion: 1 request per day to prevent abuse
+
 ## [0.2.11] - 2025-11-06
 
 ### Added
@@ -283,7 +339,8 @@ If you have modules or customizations based on v0.1.x:
 [0.2.9]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.8...v0.2.9
 [0.2.10]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.9...v0.2.10
 [0.2.11]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.10...v0.2.11
-[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.11...HEAD
+[0.2.12]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.11...v0.2.12
+[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.12...HEAD
 [0.1.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.4...v0.1.6
 [0.1.4]: https://github.com/jm-sky/fastapi-blocks-registry/releases/tag/v0.1.4

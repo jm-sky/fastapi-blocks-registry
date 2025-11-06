@@ -90,6 +90,14 @@ class ModuleInstaller:
                 create_if_missing=True
             )
 
+        # Update .gitignore for modules that need exceptions (e.g., logs)
+        gitignore_path = project_path / ".gitignore"
+        if module_name == "logs":
+            file_utils.update_gitignore_for_logs_module(
+                gitignore_path,
+                create_if_missing=True
+            )
+
         # Update app/api/router.py to register the module router
         router_py_path = project_path / "app" / "api" / "router.py"
         if router_py_path.exists():

@@ -4,6 +4,7 @@ import logging
 import os
 
 from ...core.config import settings
+from ...core.email import get_email_service
 from .auth_utils import (
     create_access_token,
     create_refresh_token,
@@ -47,6 +48,15 @@ class AuthService:
         """
         try:
             user = await self.user_repository.create_user(email, password, name)
+            
+            # Send welcome email
+            try:
+                email_service = get_email_service()
+                await email_service.send_welcome_email(to=email, name=name)
+            except Exception as e:
+                # Log error but don't fail registration if email fails
+                logger.warning(f"Failed to send welcome email: {e}")
+            
             return user
         except UserAlreadyExistsError:
             raise
@@ -186,13 +196,28 @@ class AuthService:
             True if token generated successfully, False if user not found
 
         Note:
-            In production, this should send an email with the reset link.
-            For development, the token can be logged or returned.
+            Sends email with reset link. In development mode, also logs token.
         """
+        # Get user to get name for email
+        user = await self.user_repository.get_user_by_email(email)
+        if not user:
+            # Return True to prevent email enumeration
+            return True
+        
         token = await self.user_repository.generate_reset_token(email)
         if token:
-            # TODO: Send email with reset link containing the token
-            # In development mode only, log the token (NEVER in production!)
+            # Send email with reset link
+            try:
+                email_service = get_email_service()
+                await email_service.send_password_reset_email(
+                    to=email,
+                    name=user.name,
+                    reset_token=token
+                )
+            except Exception as e:
+                logger.error(f"Failed to send password reset email: {e}")
+            
+            # In development mode only, also log the token (NEVER in production!)
             environment = os.getenv("ENVIRONMENT", "production").lower()
             if environment == "development":
                 logger.warning(
@@ -226,7 +251,13 @@ class AuthService:
         return True
 
 
-    async def change_password(self, user_id: str, current_password: str, new_password: str) -> bool:
+    async def change_password(
+        self,
+        user_id: str,
+        current_password: str,
+        new_password: str,
+        ip_address: str | None = None
+    ) -> bool:
         """
         Change user password.
 
@@ -234,6 +265,7 @@ class AuthService:
             user_id: User ID
             current_password: Current password
             new_password: New password
+            ip_address: IP address where change occurred (optional)
 
         Returns:
             True if password changed successfully
@@ -248,4 +280,79 @@ class AuthService:
             if not user:
                 raise UserNotFoundError("User not found")
             raise InvalidCredentialsError("Current password is incorrect")
+        
+        # Send password changed notification email
+        try:
+            email_service = get_email_service()
+            await email_service.send_password_changed_email(
+                to=user.email,
+                name=user.name,
+                ip_address=ip_address
+            )
+        except Exception as e:
+            # Log error but don't fail password change if email fails
+            logger.warning(f"Failed to send password changed email: {e}")
+        
+        return True
+
+    async def delete_account(
+        self,
+        user_id: str,
+        password: str | None = None,
+        confirmation: str = "",
+        soft_delete: bool = True
+    ) -> bool:
+        """
+        Delete user account.
+
+        Args:
+            user_id: User ID to delete
+            password: Current password for verification (optional but recommended)
+            confirmation: Confirmation phrase (e.g., 'DELETE' or user email)
+            soft_delete: If True, performs soft delete (default). If False, hard delete.
+
+        Returns:
+            True if account deleted successfully
+
+        Raises:
+            InvalidCredentialsError: If password is provided but incorrect
+            UserNotFoundError: If user not found
+        """
+        # Get user to verify existence and for password verification
+        user = await self.user_repository.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError("User not found")
+
+        # Verify password if provided
+        if password:
+            if not user.verify_password(password):
+                raise InvalidCredentialsError("Password is incorrect")
+
+        # Verify confirmation phrase (should be 'DELETE' or user email)
+        if confirmation.upper() != "DELETE" and confirmation.lower() != user.email.lower():
+            raise InvalidCredentialsError("Confirmation phrase is incorrect")
+
+        # Store user email and name before deletion for email notification
+        user_email = user.email
+        user_name = user.name
+
+        # Delete user account
+        success = await self.user_repository.delete_user(user_id, soft_delete=soft_delete)
+        if not success:
+            raise UserNotFoundError("Failed to delete user account")
+
+        # Send account deletion confirmation email (before account is deleted)
+        try:
+            email_service = get_email_service()
+            await email_service.send_account_deleted_email(
+                to=user_email,
+                name=user_name
+            )
+        except Exception as e:
+            # Log error but don't fail deletion if email fails
+            logger.warning(f"Failed to send account deletion email: {e}")
+
+        # TODO: Invalidate all user sessions/tokens
+        # TODO: Delete related data (2FA, passkeys, etc.)
+
         return True
