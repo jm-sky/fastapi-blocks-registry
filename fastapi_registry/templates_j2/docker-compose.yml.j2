@@ -1,0 +1,78 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:17-alpine
+    container_name: {db_container_name}
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${{POSTGRES_DB:-{postgres_db}}}
+      - POSTGRES_USER=${{POSTGRES_USER:-{postgres_user}}}
+      - POSTGRES_PASSWORD=${{POSTGRES_PASSWORD:-{postgres_password}}}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${{POSTGRES_USER:-{postgres_user}}}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Expose port only for development (comment out in production)
+    # ports:
+    #   - "{db_forward_port}:5432"
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: {project_name_slug}:latest
+    container_name: {app_container_name}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${{ENVIRONMENT:-production}}
+      - PROJECT_NAME=${{PROJECT_NAME:-{project_name}}}
+      - APP_PORT=${{APP_PORT:-{app_port}}}
+      - DATABASE_URL=postgresql+asyncpg://${{POSTGRES_USER:-{postgres_user}}}:${{POSTGRES_PASSWORD:-{postgres_password}}}@db:5432/${{POSTGRES_DB:-{postgres_db}}}
+      - SECRET_KEY=${{SECRET_KEY}}
+      - LOG_LEVEL=${{LOG_LEVEL:-INFO}}
+      - CORS_ORIGINS=${{CORS_ORIGINS:-["http://localhost:3000"]}}
+    ports:
+      - "${{APP_PORT:-{app_port}}}:8000"
+    # Volumes (optional - for persistent logs)
+    # volumes:
+    #   - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Resource limits (optional, adjust as needed)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 256M
+
+volumes:
+  postgres_data:
+    driver: local
+

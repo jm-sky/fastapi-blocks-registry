@@ -1,5 +1,6 @@
 """Project initialization utilities."""
 
+import re
 import secrets
 import shutil
 from pathlib import Path
@@ -64,11 +65,27 @@ class ProjectInitializer:
         # Generate secure secret key
         secret_key = secrets.token_urlsafe(32)
 
+        # Generate Docker-related variables
+        project_name_slug = self._slugify(project_name)
+        db_container_name = f"{project_name_slug}-db"
+        app_container_name = project_name_slug
+        postgres_db = project_name_slug.replace("-", "_")
+        postgres_user = postgres_db
+
         # Template variables
         template_vars = {
             "project_name": project_name,
             "project_description": project_description,
             "secret_key": secret_key,
+            # Docker variables
+            "project_name_slug": project_name_slug,
+            "db_container_name": db_container_name,
+            "app_container_name": app_container_name,
+            "postgres_db": postgres_db,
+            "postgres_user": postgres_user,
+            "postgres_password": "changeme",  # Default, should be changed in production
+            "db_forward_port": "5432",
+            "app_port": "8000",
         }
 
         # Copy example_project structure (excluding modules which user will add)
@@ -165,6 +182,11 @@ class ProjectInitializer:
             "README.md.j2": project_path / "README.md",
             "env.j2": project_path / ".env",
             "config.py.j2": project_path / "app" / "core" / "config.py",
+            # Docker templates
+            "docker-compose.yml.j2": project_path / "docker-compose.yml",
+            "docker-compose.dev.yml.j2": project_path / "docker-compose.dev.yml",
+            "Dockerfile.j2": project_path / "Dockerfile",
+            "Dockerfile.dev.j2": project_path / "Dockerfile.dev",
         }
 
         for template_name, dest_path in j2_templates.items():
@@ -197,7 +219,28 @@ class ProjectInitializer:
         Returns:
             True if valid, False otherwise
         """
-        import re
-
         # Allow alphanumeric, underscore, hyphen
         return bool(re.match(r"^[a-zA-Z][a-zA-Z0-9_-]*$", name))
+
+    def _slugify(self, name: str) -> str:
+        """
+        Convert project name to a slug suitable for container names.
+
+        Args:
+            name: Project name to slugify
+
+        Returns:
+            Slugified name (lowercase, hyphens instead of underscores)
+        """
+        # Convert to lowercase
+        slug = name.lower()
+        # Replace underscores with hyphens
+        slug = slug.replace("_", "-")
+        # Remove any characters that aren't alphanumeric or hyphens
+        slug = re.sub(r"[^a-z0-9-]", "", slug)
+        # Remove leading/trailing hyphens
+        slug = slug.strip("-")
+        # Ensure it starts with a letter or number
+        if not slug or not slug[0].isalnum():
+            slug = f"app-{slug}" if slug else "app"
+        return slug

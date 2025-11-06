@@ -1,0 +1,64 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:17-alpine
+    container_name: {db_container_name}
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${{POSTGRES_DB:-{postgres_db}}}
+      - POSTGRES_USER=${{POSTGRES_USER:-{postgres_user}}}
+      - POSTGRES_PASSWORD=${{POSTGRES_PASSWORD:-{postgres_password}}}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${{DB_FORWARD_PORT:-{db_forward_port}}}:5432"  # Exposed for development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${{POSTGRES_USER:-{postgres_user}}}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Application (Development Mode)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: {project_name_slug}:dev
+    container_name: {app_container_name}-dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=development
+      - PROJECT_NAME=${{PROJECT_NAME:-{project_name}}}
+      - APP_PORT=${{APP_PORT:-{app_port}}}
+      - DATABASE_URL=postgresql+asyncpg://${{POSTGRES_USER:-{postgres_user}}}:${{POSTGRES_PASSWORD:-{postgres_password}}}@db:5432/${{POSTGRES_DB:-{postgres_db}}}
+      - SECRET_KEY=${{SECRET_KEY}}
+      - LOG_LEVEL=${{LOG_LEVEL:-DEBUG}}
+      - CORS_ORIGINS=${{CORS_ORIGINS:-["http://localhost:3000"]}}
+    ports:
+      - "${{APP_PORT:-{app_port}}}:8000"
+    volumes:
+      # Mount source code for hot reload
+      - ./app:/app/app
+      - ./scripts:/app/scripts
+      - ./tests:/app/tests
+      - ./main.py:/app/main.py
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    driver: local
+

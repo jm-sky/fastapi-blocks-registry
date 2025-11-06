@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
+## [0.2.11] - 2025-11-06
+
+### Added
+- **Docker templates and development setup**: Added comprehensive Docker support for initialized projects
+  - `Dockerfile` and `Dockerfile.dev` templates for production and development builds
+  - `docker-compose.yml` and `docker-compose.dev.yml` templates with PostgreSQL database service
+  - Automatic generation of Docker-related variables (container names, database credentials, ports)
+  - Slugification utility for project names to ensure valid container names
+  - Integration with project initialization to automatically include Docker files in new projects
+
+### Changed
+- **Project initializer**: Enhanced to generate Docker-specific configuration variables
+  - Added `_slugify()` method to convert project names to container-friendly slugs
+  - Extended template variables to include Docker configuration (container names, database settings, ports)
+  - Docker templates are now automatically processed during project initialization
+
 ## [0.2.10] - 2025-11-06
 
 ### Added
@@ -265,7 +281,9 @@ If you have modules or customizations based on v0.1.x:
 [0.2.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.6...v0.2.7
 [0.2.8]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.7...v0.2.8
 [0.2.9]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.8...v0.2.9
-[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.9...HEAD
+[0.2.10]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.9...v0.2.10
+[0.2.11]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.10...v0.2.11
+[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.11...HEAD
 [0.1.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.4...v0.1.6
 [0.1.4]: https://github.com/jm-sky/fastapi-blocks-registry/releases/tag/v0.1.4

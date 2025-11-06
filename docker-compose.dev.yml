@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"  # Exposed for development
+      - "${DB_FORWARD_PORT:-5432}:5432"  # Exposed for development
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-opsmonitor}"]
       interval: 10s
