@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
-## [0.2.9] - 2025-01-05
+## [0.2.10] - 2025-11-06
+
+### Added
+- **CLI `--all` option**: Added `--all` (or `-a`) flag to the `init` command to automatically install all available modules from the registry after project initialization
+  - Modules are automatically sorted by dependencies (topological sort) to ensure correct installation order
+  - Provides detailed installation progress and summary (installed/failed counts)
+  - Skips modules that already exist in the project
+  - Enables quick setup of a complete FastAPI project with all modules in a single command
+
+## [0.2.9] - 2025-11-05
 
 ### Added
 - **Two-Factor Authentication (2FA) module**: Complete implementation of TOTP and WebAuthn/Passkeys support
