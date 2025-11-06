@@ -8,7 +8,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from fastapi_registry import __version__
 from fastapi_registry.core.installer import ModuleInstaller
 from fastapi_registry.core.project_initializer import ProjectInitializer
 from fastapi_registry.core.registry_manager import RegistryManager
@@ -24,10 +23,7 @@ app = typer.Typer(
 def version_callback(value: bool) -> None:
     """Show version information."""
     if value:
-        from fastapi_registry import __description__
-
-        rprint(f"\n[bold cyan]FastAPI Blocks Registry[/bold cyan] [yellow]v{__version__}[/yellow]")
-        rprint(f"[dim]{__description__}[/dim]\n")
+        _print_version()
         raise typer.Exit()
 
 
@@ -37,6 +33,13 @@ console = Console()
 # Get the path to the registry.json file
 REGISTRY_PATH = Path(__file__).parent / "registry.json"
 REGISTRY_BASE_PATH = Path(__file__).parent
+
+def _print_version() -> None:
+    """Print CLI version and description consistently."""
+    from fastapi_registry import __description__, __version__
+
+    rprint(f"\n[bold cyan]FastAPI Blocks Registry[/bold cyan] [yellow]v{__version__}[/yellow]")
+    rprint(f"[dim]{__description__}[/dim]\n")
 
 
 @app.callback()
@@ -54,8 +57,8 @@ def common_options(
     pass
 
 
-@app.command()
-def list(
+@app.command(name="list")
+def list_modules(
     search: str | None = typer.Option(
         None, "--search", "-s", help="Search modules by name or description"
     )
@@ -493,26 +496,23 @@ def _sort_modules_by_dependencies(
     return result
 
 
-@app.command()
-def init(
-    project_path: Path | None = typer.Option(
-        None,
-        "--project-path",
-        "-p",
-        help="Path to create FastAPI project (defaults to current directory)",
-    ),
-    name: str | None = typer.Option(
-        None, "--name", "-n", help="Project name (defaults to directory name)"
-    ),
-    description: str | None = typer.Option(None, "--description", "-d", help="Project description"),
-    force: bool = typer.Option(
-        False, "--force", "-f", help="Initialize even if directory is not empty"
-    ),
-    all_modules: bool = typer.Option(
-        False, "--all", "-a", help="Install all available modules after initialization"
-    ),
+def _run_init_with_error_handling(
+    project_path: Path | None,
+    name: str | None,
+    description: str | None,
+    force: bool,
+    all_modules: bool,
 ) -> None:
-    """Initialize a new FastAPI project structure."""
+    """
+    Run project initialization with consistent error handling.
+
+    Args:
+        project_path: Path to create FastAPI project (defaults to current directory)
+        name: Project name (defaults to directory name)
+        description: Project description
+        force: If True, overwrite existing files
+        all_modules: If True, install all available modules after initialization
+    """
     try:
         # Determine project path
         if project_path is None:
@@ -540,6 +540,35 @@ def init(
 
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         raise typer.Exit(1)
+
+
+@app.command()
+def init(
+    project_path: Path | None = typer.Option(
+        None,
+        "--project-path",
+        "-p",
+        help="Path to create FastAPI project (defaults to current directory)",
+    ),
+    name: str | None = typer.Option(
+        None, "--name", "-n", help="Project name (defaults to directory name)"
+    ),
+    description: str | None = typer.Option(None, "--description", "-d", help="Project description"),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Initialize even if directory is not empty"
+    ),
+    all_modules: bool = typer.Option(
+        False, "--all", "-a", help="Install all available modules after initialization"
+    ),
+) -> None:
+    """Initialize a new FastAPI project structure."""
+    _run_init_with_error_handling(
+        project_path=project_path,
+        name=name,
+        description=description,
+        force=force,
+        all_modules=all_modules,
+    )
 
 
 @app.command()
@@ -567,43 +596,19 @@ def setup(
     This is equivalent to running 'init --all'. Use this command to quickly
     set up a complete FastAPI project with all modules from the registry.
     """
-    try:
-        # Determine project path
-        if project_path is None:
-            project_path = Path.cwd()
-
-        _do_init_project(
-            project_path=project_path,
-            name=name,
-            description=description,
-            force=force,
-            all_modules=all_modules,
-        )
-
-    except FileExistsError as e:
-        console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1)
-    except ValueError as e:
-        console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1)
-    except typer.Exit:
-        raise
-    except Exception as e:
-        console.print(f"[red]Unexpected error:[/red] {e}")
-        import traceback
-
-        console.print(f"[dim]{traceback.format_exc()}[/dim]")
-        raise typer.Exit(1)
+    _run_init_with_error_handling(
+        project_path=project_path,
+        name=name,
+        description=description,
+        force=force,
+        all_modules=all_modules,
+    )
 
 
 @app.command()
 def version() -> None:
     """Show version information."""
-    from fastapi_registry import __description__, __version__
-
-    rprint("\n[bold cyan]FastAPI Blocks Registry[/bold cyan]")
-    rprint(f"[dim]{__description__}[/dim]")
-    rprint(f"\nVersion: [yellow]{__version__}[/yellow]\n")
+    _print_version()
 
 
 def main() -> None:
