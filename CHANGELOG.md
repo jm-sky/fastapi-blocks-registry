@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
+## [0.2.16] - 2025-11-07
+
+### Changed
+- **Module rename**: Renamed `logs` module to `log-management` to avoid conflicts with `.gitignore` patterns
+  - Updated module directory name from `logs` to `log-management`
+  - Updated registry.json key from `"logs"` to `"log-management"`
+  - Updated all imports and references in codebase
+  - Removed `update_gitignore_for_logs_module()` function (no longer needed)
+  - Updated documentation (CLAUDE.md, README.md examples)
+
+### Fixed
+- **Code formatting**: Fixed import sorting and code formatting issues
+- **Black formatting**: Applied black formatting to 2 files
+
 ## [0.2.15] - 2025-11-07
 
 ### Fixed
