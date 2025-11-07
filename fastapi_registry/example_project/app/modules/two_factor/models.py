@@ -33,5 +33,3 @@ class Passkey(BaseModel):
     transports: list[str] | None = None
     backupEligible: bool
     backupState: bool
-
-

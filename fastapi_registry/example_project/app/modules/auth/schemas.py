@@ -25,16 +25,14 @@ def validate_password_strength(password: str) -> str:
     Raises:
         ValueError: If password doesn't meet requirements
     """
-    if not re.search(r'[A-Z]', password):
-        raise ValueError('Password must contain at least one uppercase letter')
-    if not re.search(r'[a-z]', password):
-        raise ValueError('Password must contain at least one lowercase letter')
-    if not re.search(r'\d', password):
-        raise ValueError('Password must contain at least one digit')
+    if not re.search(r"[A-Z]", password):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not re.search(r"[a-z]", password):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not re.search(r"\d", password):
+        raise ValueError("Password must contain at least one digit")
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        raise ValueError(
-            'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'
-        )
+        raise ValueError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)')
     return password
 
 
@@ -43,29 +41,18 @@ class UserLogin(BaseModel):
 
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
-    recaptchaToken: str | None = Field(
-        default=None,
-        description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)"
-    )
+    recaptchaToken: str | None = Field(default=None, description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)")
 
 
 class UserRegister(BaseModel):
     """User registration request schema with camelCase."""
 
     email: EmailStr
-    password: str = Field(
-        ...,
-        min_length=8,
-        max_length=100,
-        description="Password must contain uppercase, lowercase, digit, and special character"
-    )
+    password: str = Field(..., min_length=8, max_length=100, description="Password must contain uppercase, lowercase, digit, and special character")
     name: str = Field(..., min_length=1, max_length=100)
-    recaptchaToken: str | None = Field(
-        default=None,
-        description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)"
-    )
+    recaptchaToken: str | None = Field(default=None, description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)")
 
-    @field_validator('password')
+    @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
         """Validate password meets strength requirements."""
@@ -119,24 +106,16 @@ class ForgotPasswordRequest(BaseModel):
     """Forgot password request schema."""
 
     email: EmailStr
-    recaptchaToken: str | None = Field(
-        default=None,
-        description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)"
-    )
+    recaptchaToken: str | None = Field(default=None, description="reCAPTCHA token (optional, only checked if RECAPTCHA_ENABLED=true)")
 
 
 class ResetPasswordRequest(BaseModel):
     """Reset password request schema."""
 
     token: str = Field(..., min_length=1)
-    newPassword: str = Field(
-        ...,
-        min_length=8,
-        max_length=100,
-        description="Password must contain uppercase, lowercase, digit, and special character"
-    )
+    newPassword: str = Field(..., min_length=8, max_length=100, description="Password must contain uppercase, lowercase, digit, and special character")
 
-    @field_validator('newPassword')
+    @field_validator("newPassword")
     @classmethod
     def validate_password(cls, v: str) -> str:
         """Validate password meets strength requirements."""
@@ -147,14 +126,9 @@ class ChangePasswordRequest(BaseModel):
     """Change password request schema for authenticated users."""
 
     currentPassword: str = Field(..., min_length=1, max_length=100)
-    newPassword: str = Field(
-        ...,
-        min_length=8,
-        max_length=100,
-        description="Password must contain uppercase, lowercase, digit, and special character"
-    )
+    newPassword: str = Field(..., min_length=8, max_length=100, description="Password must contain uppercase, lowercase, digit, and special character")
 
-    @field_validator('newPassword')
+    @field_validator("newPassword")
     @classmethod
     def validate_password(cls, v: str) -> str:
         """Validate password meets strength requirements."""
@@ -164,14 +138,5 @@ class ChangePasswordRequest(BaseModel):
 class DeleteAccountRequest(BaseModel):
     """Delete account request schema."""
 
-    password: str | None = Field(
-        None,
-        min_length=1,
-        max_length=100,
-        description="Current password for confirmation (optional but recommended)"
-    )
-    confirmation: str = Field(
-        ...,
-        min_length=1,
-        description="Confirmation phrase like 'DELETE' or user email"
-    )
+    password: str | None = Field(None, min_length=1, max_length=100, description="Current password for confirmation (optional but recommended)")
+    confirmation: str = Field(..., min_length=1, description="Confirmation phrase like 'DELETE' or user email")

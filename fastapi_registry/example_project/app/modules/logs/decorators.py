@@ -16,15 +16,11 @@ from .db_models import LogLevel
 
 logger = logging.getLogger(__name__)
 
-P = ParamSpec('P')
-T = TypeVar('T')
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
-def log_errors(
-    message: str | None = None,
-    reraise: bool = True,
-    level: LogLevel = LogLevel.ERROR
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def log_errors(message: str | None = None, reraise: bool = True, level: LogLevel = LogLevel.ERROR) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator to automatically log exceptions to database.
 
     This decorator catches exceptions in the decorated function and logs them
@@ -50,10 +46,12 @@ def log_errors(
             # Your code here
             pass
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         is_async = inspect.iscoroutinefunction(func)
 
         if is_async:
+
             @functools.wraps(func)
             async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 try:
@@ -71,20 +69,10 @@ def log_errors(
                     # Log the error
                     if log_service:
                         try:
-                            await log_service.log_error(
-                                message=error_message,
-                                exception=e,
-                                module=func.__module__,
-                                function=func.__name__,
-                                user_id=user_id,
-                                request_id=request_id
-                            )
+                            await log_service.log_error(message=error_message, exception=e, module=func.__module__, function=func.__name__, user_id=user_id, request_id=request_id)
                         except Exception as log_error:
                             # Fallback to standard logging if database logging fails
-                            logger.error(
-                                f"Failed to log error to database: {log_error}",
-                                exc_info=True
-                            )
+                            logger.error(f"Failed to log error to database: {log_error}", exc_info=True)
                             logger.error(f"Original error: {error_message}", exc_info=e)
                     else:
                         # Fallback to standard logging if no log service available
@@ -96,6 +84,7 @@ def log_errors(
 
             return async_wrapper  # type: ignore
         else:
+
             @functools.wraps(func)
             def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 try:
@@ -124,12 +113,12 @@ def _extract_log_service(args: tuple, kwargs: dict) -> Any:
     - First argument that has a 'log_service' attribute
     """
     # Check kwargs
-    if 'log_service' in kwargs:
-        return kwargs['log_service']
+    if "log_service" in kwargs:
+        return kwargs["log_service"]
 
     # Check args for objects with log_service attribute
     for arg in args:
-        if hasattr(arg, 'log_service'):
+        if hasattr(arg, "log_service"):
             return arg.log_service
 
     return None
@@ -143,18 +132,18 @@ def _extract_user_id(args: tuple, kwargs: dict) -> str | None:
     - kwargs with 'current_user' that has 'id' attribute
     - Request object with user state
     """
-    if 'user_id' in kwargs:
-        return str(kwargs['user_id'])
+    if "user_id" in kwargs:
+        return str(kwargs["user_id"])
 
-    if 'current_user' in kwargs:
-        user = kwargs['current_user']
-        if hasattr(user, 'id'):
+    if "current_user" in kwargs:
+        user = kwargs["current_user"]
+        if hasattr(user, "id"):
             return str(user.id)
 
     # Check for FastAPI Request object
     for arg in args:
         if isinstance(arg, Request):
-            if hasattr(arg.state, 'user') and hasattr(arg.state.user, 'id'):
+            if hasattr(arg.state, "user") and hasattr(arg.state.user, "id"):
                 return str(arg.state.user.id)
 
     return None
@@ -167,17 +156,17 @@ def _extract_request_id(args: tuple, kwargs: dict) -> str | None:
     - kwargs with 'request_id' key
     - Request object with request_id in state or headers
     """
-    if 'request_id' in kwargs:
-        return str(kwargs['request_id'])
+    if "request_id" in kwargs:
+        return str(kwargs["request_id"])
 
     # Check for FastAPI Request object
     for arg in args:
         if isinstance(arg, Request):
             # Check state first
-            if hasattr(arg.state, 'request_id'):
+            if hasattr(arg.state, "request_id"):
                 return str(arg.state.request_id)
             # Check headers
-            if 'x-request-id' in arg.headers:
-                return str(arg.headers['x-request-id'])
+            if "x-request-id" in arg.headers:
+                return str(arg.headers["x-request-id"])
 
     return None

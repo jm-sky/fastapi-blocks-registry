@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
     """Service class for authentication operations."""
+
     user_repository: UserRepositoryInterface
 
     def __init__(self, user_repository: UserRepositoryInterface):
         self.user_repository = user_repository
-
 
     async def register_user(self, email: str, password: str, name: str) -> User:
         """
@@ -48,7 +48,7 @@ class AuthService:
         """
         try:
             user = await self.user_repository.create_user(email, password, name)
-            
+
             # Send welcome email
             try:
                 email_service = get_email_service()
@@ -56,11 +56,10 @@ class AuthService:
             except Exception as e:
                 # Log error but don't fail registration if email fails
                 logger.warning(f"Failed to send welcome email: {e}")
-            
+
             return user
         except UserAlreadyExistsError:
             raise
-
 
     async def login_user(self, email: str, password: str) -> LoginResponse:
         """
@@ -107,14 +106,7 @@ class AuthService:
             }
         )
 
-        return LoginResponse(
-            user=UserResponse(**user.to_response()),
-            accessToken=access_token,
-            refreshToken=refresh_token,
-            tokenType="bearer",
-            expiresIn=settings.security.access_token_expires_minutes * 60  # Convert to seconds
-        )
-
+        return LoginResponse(user=UserResponse(**user.to_response()), accessToken=access_token, refreshToken=refresh_token, tokenType="bearer", expiresIn=settings.security.access_token_expires_minutes * 60)  # Convert to seconds
 
     async def refresh_access_token(self, refresh_token: str) -> dict[str, str | int]:
         """
@@ -169,12 +161,7 @@ class AuthService:
                 }
             )
 
-            return {
-                "accessToken": new_access_token,
-                "refreshToken": new_refresh_token,
-                "tokenType": "bearer",
-                "expiresIn": settings.security.access_token_expires_minutes * 60
-            }
+            return {"accessToken": new_access_token, "refreshToken": new_refresh_token, "tokenType": "bearer", "expiresIn": settings.security.access_token_expires_minutes * 60}
 
         except InvalidTokenError:
             # Re-raise known errors
@@ -183,7 +170,6 @@ class AuthService:
             # Log unexpected errors for debugging
             logger.error(f"Unexpected error during token refresh: {e}", exc_info=True)
             raise InvalidTokenError("Invalid or expired refresh token")
-
 
     async def request_password_reset(self, email: str) -> bool:
         """
@@ -203,33 +189,25 @@ class AuthService:
         if not user:
             # Return True to prevent email enumeration
             return True
-        
+
         token = await self.user_repository.generate_reset_token(email)
         if token:
             # Send email with reset link
             try:
                 email_service = get_email_service()
-                await email_service.send_password_reset_email(
-                    to=email,
-                    name=user.name,
-                    reset_token=token
-                )
+                await email_service.send_password_reset_email(to=email, name=user.name, reset_token=token)
             except Exception as e:
                 logger.error(f"Failed to send password reset email: {e}")
-            
+
             # In development mode only, also log the token (NEVER in production!)
             environment = os.getenv("ENVIRONMENT", "production").lower()
             if environment == "development":
-                logger.warning(
-                    f"DEV MODE: Password reset token for {email}: {token}\n"
-                    f"Reset link: /reset-password?token={token}"
-                )
+                logger.warning(f"DEV MODE: Password reset token for {email}: {token}\n" f"Reset link: /reset-password?token={token}")
             else:
                 # In production, just log that email was sent without exposing token
                 logger.info(f"Password reset email sent to {email}")
             return True
         return False
-
 
     async def reset_password(self, token: str, new_password: str) -> bool:
         """
@@ -250,14 +228,7 @@ class AuthService:
             raise InvalidTokenError("Invalid or expired reset token")
         return True
 
-
-    async def change_password(
-        self,
-        user_id: str,
-        current_password: str,
-        new_password: str,
-        ip_address: str | None = None
-    ) -> bool:
+    async def change_password(self, user_id: str, current_password: str, new_password: str, ip_address: str | None = None) -> bool:
         """
         Change user password.
 
@@ -280,28 +251,18 @@ class AuthService:
             if not user:
                 raise UserNotFoundError("User not found")
             raise InvalidCredentialsError("Current password is incorrect")
-        
+
         # Send password changed notification email
         try:
             email_service = get_email_service()
-            await email_service.send_password_changed_email(
-                to=user.email,
-                name=user.name,
-                ip_address=ip_address
-            )
+            await email_service.send_password_changed_email(to=user.email, name=user.name, ip_address=ip_address)
         except Exception as e:
             # Log error but don't fail password change if email fails
             logger.warning(f"Failed to send password changed email: {e}")
-        
+
         return True
 
-    async def delete_account(
-        self,
-        user_id: str,
-        password: str | None = None,
-        confirmation: str = "",
-        soft_delete: bool = True
-    ) -> bool:
+    async def delete_account(self, user_id: str, password: str | None = None, confirmation: str = "", soft_delete: bool = True) -> bool:
         """
         Delete user account.
 
@@ -344,10 +305,7 @@ class AuthService:
         # Send account deletion confirmation email (before account is deleted)
         try:
             email_service = get_email_service()
-            await email_service.send_account_deleted_email(
-                to=user_email,
-                name=user_name
-            )
+            await email_service.send_account_deleted_email(to=user_email, name=user_name)
         except Exception as e:
             # Log error but don't fail deletion if email fails
             logger.warning(f"Failed to send account deletion email: {e}")

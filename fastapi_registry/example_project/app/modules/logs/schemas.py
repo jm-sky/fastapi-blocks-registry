@@ -24,9 +24,7 @@ class LogResponse(BaseModel):
     extraData: str | None = None
     createdAt: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class LogCreateRequest(BaseModel):

@@ -6,6 +6,7 @@ This module defines custom exceptions specific to log operations.
 
 class LogError(Exception):
     """Base exception for log-related errors."""
+
     pass
 
 

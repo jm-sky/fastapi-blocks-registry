@@ -26,9 +26,10 @@ class JWTPayload(TypedDict, total=False):
         tfaVerified: Whether 2FA has been verified (optional)
         tfaMethod: 2FA method used - 'totp' or 'webauthn' (optional)
         type: Token type - 'access', 'refresh', '2fa_verification', etc. - REQUIRED
-    
+
     See docs/JWT_FLOW.md for detailed flow documentation.
     """
+
     sub: str
     email: str | None
     tid: str | None
@@ -53,6 +54,7 @@ class CreateAccessTokenOptions(TypedDict, total=False):
         tfaVerified: Whether 2FA has been verified (default: False)
         tfaMethod: 2FA method used - 'totp' or 'webauthn' (optional)
     """
+
     sub: str
     email: str | None
     tid: str | None
@@ -69,9 +71,10 @@ class CreateRefreshTokenOptions(TypedDict, total=False):
         email: User email address - RECOMMENDED
         tfaVerified: Whether 2FA has been verified (default: False)
         tfaMethod: 2FA method used - 'totp' or 'webauthn' (optional)
-        
+
     Note: tid/trol are NOT preserved in refresh tokens (security).
     """
+
     sub: str
     email: str | None
     tfaVerified: bool

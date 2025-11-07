@@ -19,6 +19,7 @@ class TwoFactorTokenPayload(TypedDict, total=False):
         tfaVerified: Whether 2FA has been verified (always False for this token type)
         tfaMethod: 2FA method used - 'totp' or 'webauthn' (null until verified)
     """
+
     sub: str
     email: str | None
     exp: int
@@ -40,6 +41,7 @@ class TotpSetupTokenPayload(TypedDict, total=False):
         iat: Issued at (Unix timestamp)
         type: Token type - "2fa_setup"
     """
+
     sub: str
     secret: str
     backup_codes_hashed: list[str]
@@ -58,6 +60,7 @@ class PasskeyRegistrationTokenPayload(TypedDict, total=False):
         iat: Issued at (Unix timestamp)
         type: Token type - "passkey_registration"
     """
+
     sub: str
     challenge: str
     exp: int

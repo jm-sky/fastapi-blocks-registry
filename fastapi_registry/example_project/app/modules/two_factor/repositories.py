@@ -42,21 +42,13 @@ class TwoFactorRepository(TwoFactorRepositoryInterface):
 
     async def mark_totp_verified(self, user_id: str) -> None:
         """Mark TOTP as verified and enabled."""
-        stmt = (
-            update(TotpConfigDB)
-            .where(TotpConfigDB.user_id == user_id)
-            .values(is_enabled=True, verified_at=datetime.now(UTC))
-        )
+        stmt = update(TotpConfigDB).where(TotpConfigDB.user_id == user_id).values(is_enabled=True, verified_at=datetime.now(UTC))
         await self.db.execute(stmt)
         await self.db.commit()
 
     async def update_totp_last_verified(self, user_id: str) -> None:
         """Update last_verified_at timestamp."""
-        stmt = (
-            update(TotpConfigDB)
-            .where(TotpConfigDB.user_id == user_id)
-            .values(last_verified_at=datetime.now(UTC))
-        )
+        stmt = update(TotpConfigDB).where(TotpConfigDB.user_id == user_id).values(last_verified_at=datetime.now(UTC))
         await self.db.execute(stmt)
         await self.db.commit()
 
@@ -75,11 +67,7 @@ class TwoFactorRepository(TwoFactorRepositoryInterface):
 
     async def mark_backup_code_used(self, user_id: str, used_codes_json: str) -> None:
         """Update list of used backup codes."""
-        stmt = (
-            update(TotpConfigDB)
-            .where(TotpConfigDB.user_id == user_id)
-            .values(backup_codes_used=used_codes_json)
-        )
+        stmt = update(TotpConfigDB).where(TotpConfigDB.user_id == user_id).values(backup_codes_used=used_codes_json)
         await self.db.execute(stmt)
         await self.db.commit()
 
@@ -136,31 +124,19 @@ class TwoFactorRepository(TwoFactorRepositoryInterface):
 
     async def update_passkey_counter(self, passkey_id: str, counter: int) -> None:
         """Update passkey counter after authentication."""
-        stmt = (
-            update(PasskeyDB)
-            .where(PasskeyDB.id == passkey_id)
-            .values(counter=counter, last_used_at=datetime.now(UTC))
-        )
+        stmt = update(PasskeyDB).where(PasskeyDB.id == passkey_id).values(counter=counter, last_used_at=datetime.now(UTC))
         await self.db.execute(stmt)
         await self.db.commit()
 
     async def update_passkey_last_used(self, passkey_id: str) -> None:
         """Update passkey last_used_at timestamp."""
-        stmt = (
-            update(PasskeyDB)
-            .where(PasskeyDB.id == passkey_id)
-            .values(last_used_at=datetime.now(UTC))
-        )
+        stmt = update(PasskeyDB).where(PasskeyDB.id == passkey_id).values(last_used_at=datetime.now(UTC))
         await self.db.execute(stmt)
         await self.db.commit()
 
     async def update_passkey_name(self, passkey_id: str, name: str) -> None:
         """Update passkey name."""
-        stmt = (
-            update(PasskeyDB)
-            .where(PasskeyDB.id == passkey_id)
-            .values(name=name)
-        )
+        stmt = update(PasskeyDB).where(PasskeyDB.id == passkey_id).values(name=name)
         await self.db.execute(stmt)
         await self.db.commit()
 

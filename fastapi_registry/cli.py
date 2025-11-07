@@ -34,6 +34,7 @@ console = Console()
 REGISTRY_PATH = Path(__file__).parent / "registry.json"
 REGISTRY_BASE_PATH = Path(__file__).parent
 
+
 def _print_version() -> None:
     """Print CLI version and description consistently."""
     from fastapi_registry import __description__, __version__
@@ -58,11 +59,7 @@ def common_options(
 
 
 @app.command(name="list")
-def list_modules(
-    search: str | None = typer.Option(
-        None, "--search", "-s", help="Search modules by name or description"
-    )
-) -> None:
+def list_modules(search: str | None = typer.Option(None, "--search", "-s", help="Search modules by name or description")) -> None:
     """List all available modules in the registry."""
     try:
         registry = RegistryManager(REGISTRY_PATH)
@@ -158,9 +155,7 @@ def info(module_name: str) -> None:
 @app.command()
 def add(
     module_name: str,
-    project_path: Path | None = typer.Option(
-        None, "--project-path", "-p", help="Path to FastAPI project (defaults to current directory)"
-    ),
+    project_path: Path | None = typer.Option(None, "--project-path", "-p", help="Path to FastAPI project (defaults to current directory)"),
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompts"),
 ) -> None:
     """Add a module to your FastAPI project."""
@@ -183,9 +178,7 @@ def add(
 
         # Ask for confirmation
         if not yes:
-            confirm = typer.confirm(
-                f"Add '{module_name}' to project at {project_path}?", default=True
-            )
+            confirm = typer.confirm(f"Add '{module_name}' to project at {project_path}?", default=True)
             if not confirm:
                 console.print("[yellow]Cancelled.[/yellow]")
                 raise typer.Exit(0)
@@ -196,9 +189,7 @@ def add(
         with console.status(f"[bold green]Installing module '{module_name}'...", spinner="dots"):
             installer.install_module(module_name, project_path)
 
-        console.print(
-            f"\n[bold green]✓[/bold green] Module '{module_name}' installed successfully!\n"
-        )
+        console.print(f"\n[bold green]✓[/bold green] Module '{module_name}' installed successfully!\n")
 
         # Show next steps
         console.print("[bold]Next steps:[/bold]")
@@ -222,9 +213,7 @@ def add(
 @app.command()
 def remove(
     module_name: str,
-    project_path: Path | None = typer.Option(
-        None, "--project-path", "-p", help="Path to FastAPI project (defaults to current directory)"
-    ),
+    project_path: Path | None = typer.Option(None, "--project-path", "-p", help="Path to FastAPI project (defaults to current directory)"),
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompts"),
 ) -> None:
     """Remove a module from your FastAPI project."""
@@ -241,9 +230,7 @@ def remove(
 
         # Ask for confirmation
         if not yes:
-            console.print(
-                "[yellow]Warning:[/yellow] This will remove the module directory and its contents."
-            )
+            console.print("[yellow]Warning:[/yellow] This will remove the module directory and its contents.")
             console.print(f"[dim]Path: {module_path}[/dim]\n")
             confirm = typer.confirm(f"Remove module '{module_name}'?", default=False)
             if not confirm:
@@ -294,9 +281,7 @@ def _install_all_modules(project_path: Path) -> None:
             console.print(f"[yellow]⚠[/yellow] Module '{module_name}' not found, skipping...")
             continue
 
-        console.print(
-            f"[bold cyan][{i}/{total_modules}][/bold cyan] Installing [green]{module_name}[/green]..."
-        )
+        console.print(f"[bold cyan][{i}/{total_modules}][/bold cyan] Installing [green]{module_name}[/green]...")
         console.print(f"[dim]{module.description}[/dim]")
 
         try:
@@ -304,9 +289,7 @@ def _install_all_modules(project_path: Path) -> None:
             console.print(f"[bold green]✓[/bold green] {module_name} installed successfully\n")
             installed_count += 1
         except FileExistsError:
-            console.print(
-                f"[yellow]⚠[/yellow] Module '{module_name}' already exists, skipping...\n"
-            )
+            console.print(f"[yellow]⚠[/yellow] Module '{module_name}' already exists, skipping...\n")
         except Exception as e:
             console.print(f"[red]✗[/red] Failed to install '{module_name}': {e}\n")
             failed_modules.append(module_name)
@@ -344,10 +327,7 @@ def _do_init_project(
     # Validate project name if provided
     initializer = ProjectInitializer(REGISTRY_BASE_PATH)
     if name and not initializer.validate_project_name(name):
-        console.print(
-            "[red]Error:[/red] Invalid project name. "
-            "Must start with a letter and contain only alphanumeric characters, underscores, or hyphens."
-        )
+        console.print("[red]Error:[/red] Invalid project name. " "Must start with a letter and contain only alphanumeric characters, underscores, or hyphens.")
         raise typer.Exit(1)
 
     # Show what will be created
@@ -424,9 +404,7 @@ def _do_init_project(
     console.print("  1. Review and update [cyan].env[/cyan] with your configuration")
     console.print("  2. Create a virtual environment:")
     console.print("     [cyan]python -m venv venv[/cyan]")
-    console.print(
-        "     [cyan]source venv/bin/activate[/cyan]  [dim]# On Windows: venv\\Scripts\\activate[/dim]"
-    )
+    console.print("     [cyan]source venv/bin/activate[/cyan]  [dim]# On Windows: venv\\Scripts\\activate[/dim]")
     console.print("  3. Install dependencies:")
     console.print("     [cyan]pip install -r requirements.txt[/cyan]")
     if not all_modules:
@@ -460,9 +438,7 @@ def _sort_modules_by_dependencies(
     for module_name, metadata in modules.items():
         if metadata.module_dependencies:
             # Only include dependencies that exist in registry
-            graph[module_name] = {
-                dep for dep in metadata.module_dependencies if dep in modules
-            }
+            graph[module_name] = {dep for dep in metadata.module_dependencies if dep in modules}
         else:
             graph[module_name] = set()
 
@@ -550,16 +526,10 @@ def init(
         "-p",
         help="Path to create FastAPI project (defaults to current directory)",
     ),
-    name: str | None = typer.Option(
-        None, "--name", "-n", help="Project name (defaults to directory name)"
-    ),
+    name: str | None = typer.Option(None, "--name", "-n", help="Project name (defaults to directory name)"),
     description: str | None = typer.Option(None, "--description", "-d", help="Project description"),
-    force: bool = typer.Option(
-        False, "--force", "-f", help="Initialize even if directory is not empty"
-    ),
-    all_modules: bool = typer.Option(
-        False, "--all", "-a", help="Install all available modules after initialization"
-    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Initialize even if directory is not empty"),
+    all_modules: bool = typer.Option(False, "--all", "-a", help="Install all available modules after initialization"),
 ) -> None:
     """Initialize a new FastAPI project structure."""
     _run_init_with_error_handling(
@@ -579,16 +549,10 @@ def setup(
         "-p",
         help="Path to create FastAPI project (defaults to current directory)",
     ),
-    name: str | None = typer.Option(
-        None, "--name", "-n", help="Project name (defaults to directory name)"
-    ),
+    name: str | None = typer.Option(None, "--name", "-n", help="Project name (defaults to directory name)"),
     description: str | None = typer.Option(None, "--description", "-d", help="Project description"),
-    force: bool = typer.Option(
-        False, "--force", "-f", help="Initialize even if directory is not empty"
-    ),
-    all_modules: bool = typer.Option(
-        True, "--all", "-a", help="Install all available modules after initialization"
-    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Initialize even if directory is not empty"),
+    all_modules: bool = typer.Option(True, "--all", "-a", help="Install all available modules after initialization"),
 ) -> None:
     """
     Initialize a new FastAPI project and install all available modules.

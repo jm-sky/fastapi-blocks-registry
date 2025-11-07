@@ -9,11 +9,7 @@ from sqlalchemy import Column, or_
 from sqlalchemy.sql import ColumnElement
 
 
-def build_search_filter(
-    search_term: str | None,
-    *columns: Column[Any],
-    case_sensitive: bool = False
-) -> ColumnElement[bool] | None:
+def build_search_filter(search_term: str | None, *columns: Column[Any], case_sensitive: bool = False) -> ColumnElement[bool] | None:
     """Build SQLAlchemy filter for searching across multiple columns.
 
     Args:
@@ -106,11 +102,7 @@ class SearchMixin:
     _search_columns: list[Any] = []
     _case_sensitive: bool = False
 
-    def apply_search(
-        self,
-        query: Any,
-        search_term: str | None
-    ) -> Any:
+    def apply_search(self, query: Any, search_term: str | None) -> Any:
         """Apply search filter to query.
 
         Args:
@@ -123,11 +115,7 @@ class SearchMixin:
         if not search_term or not self._search_columns:
             return query
 
-        search_filter = build_search_filter(
-            search_term,
-            *self._search_columns,
-            case_sensitive=self._case_sensitive
-        )
+        search_filter = build_search_filter(search_term, *self._search_columns, case_sensitive=self._case_sensitive)
 
         if search_filter is not None:
             return query.where(search_filter)
@@ -162,5 +150,6 @@ def highlight_search_term(text: str, search_term: str, case_sensitive: bool = Fa
     else:
         # Case-insensitive replace
         import re
+
         pattern = re.compile(re.escape(search_term), re.IGNORECASE)
         return pattern.sub(lambda m: f"<mark>{m.group(0)}</mark>", text)

@@ -36,9 +36,7 @@ def users_create(
         help="User password (not recommended, will prompt if not provided)",
     ),
     admin: bool = typer.Option(False, "--admin", "-a", help="Create as administrator"),
-    no_input: bool = typer.Option(
-        False, "--no-input", help="Skip interactive prompts (requires all options)"
-    ),
+    no_input: bool = typer.Option(False, "--no-input", help="Skip interactive prompts (requires all options)"),
 ) -> None:
     """Create a new user interactively with rich prompts and validation.
 
@@ -209,9 +207,7 @@ def _show_user_summary(console: Any, email: str, name: str, is_admin: bool) -> N
     console.print(panel)
 
 
-async def _create_user_in_db(
-    email: str, name: str, password: str, is_admin: bool
-) -> dict[str, Any]:
+async def _create_user_in_db(email: str, name: str, password: str, is_admin: bool) -> dict[str, Any]:
     """Create user in database.
 
     Args:
@@ -232,9 +228,7 @@ async def _create_user_in_db(
 
         try:
             # Create user
-            user = await repo.create_user(
-                email=email, password=password, full_name=name, is_admin=is_admin
-            )
+            user = await repo.create_user(email=email, password=password, full_name=name, is_admin=is_admin)
 
             # Convert to dict for display
             return {
@@ -256,12 +250,8 @@ def users_list(
     admins_only: bool = typer.Option(False, "--admins", help="Show only administrators"),
     users_only: bool = typer.Option(False, "--users", help="Show only regular users"),
     active_only: bool = typer.Option(False, "--active", help="Show only active users"),
-    inactive_only: bool = typer.Option(
-        False, "--inactive", help="Show only inactive users"
-    ),
-    limit: int | None = typer.Option(
-        None, "--limit", "-l", help="Maximum number of users to show"
-    ),
+    inactive_only: bool = typer.Option(False, "--inactive", help="Show only inactive users"),
+    limit: int | None = typer.Option(None, "--limit", "-l", help="Maximum number of users to show"),
 ) -> None:
     """List all users in a beautiful table with filters.
 
@@ -275,9 +265,7 @@ def users_list(
         # List first 10 active users
         python -m cli users list --active --limit 10
     """
-    asyncio.run(
-        _users_list_async(admins_only, users_only, active_only, inactive_only, limit)
-    )
+    asyncio.run(_users_list_async(admins_only, users_only, active_only, inactive_only, limit))
 
 
 async def _users_list_async(
@@ -438,13 +426,9 @@ async def _users_delete_async(identifier: str | None, yes: bool) -> None:
 
         # Confirm deletion
         if not yes:
-            console.print(
-                "\n[bold red]Warning:[/bold red] This action cannot be undone!\n"
-            )
+            console.print("\n[bold red]Warning:[/bold red] This action cannot be undone!\n")
 
-            if not Confirm.ask(
-                "Are you sure you want to delete this user?", default=False
-            ):
+            if not Confirm.ask("Are you sure you want to delete this user?", default=False):
                 console.print("[yellow]Cancelled[/yellow]")
                 return
 

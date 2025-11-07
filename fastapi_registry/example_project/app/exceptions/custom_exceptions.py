@@ -10,9 +10,7 @@ class AppException(Exception):
     All custom exceptions should inherit from this class.
     """
 
-    def __init__(
-        self, message: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
-    ):
+    def __init__(self, message: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR):
         """
         Initialize application exception.
 

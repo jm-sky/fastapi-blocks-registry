@@ -127,11 +127,4 @@ class User(BaseModel):
 
     def to_response(self) -> dict[str, Any]:
         """Convert to camelCase response format."""
-        return {
-            "id": self.id,
-            "email": self.email,
-            "name": self.name,
-            "isActive": self.isActive,
-            "isAdmin": self.isAdmin,
-            "createdAt": self.createdAt
-        }
+        return {"id": self.id, "email": self.email, "name": self.name, "isActive": self.isActive, "isAdmin": self.isAdmin, "createdAt": self.createdAt}

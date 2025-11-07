@@ -14,38 +14,14 @@ class ModuleMetadata(BaseModel):
     description: str = Field(description="Module description")
     version: str = Field(default="1.0.0", description="Module version")
     path: str = Field(description="Relative path to module directory")
-    dependencies: list[str] = Field(
-        default_factory=list,
-        description="List of Python package dependencies"
-    )
-    module_dependencies: list[str] = Field(
-        default_factory=list,
-        description="List of other modules this module depends on"
-    )
-    common_dependencies: list[str] = Field(
-        default_factory=list,
-        description="List of common utility modules (e.g., ['pagination', 'search'])"
-    )
-    python_version: str = Field(
-        default=">=3.12",
-        description="Required Python version"
-    )
-    env: dict[str, str] = Field(
-        default_factory=dict,
-        description="Environment variables with default values"
-    )
-    settings_class: Optional[str] = Field(
-        default=None,
-        description="Name of the settings class in the module"
-    )
-    router_prefix: str = Field(
-        default="/api/v1",
-        description="URL prefix for the router"
-    )
-    tags: list[str] = Field(
-        default_factory=list,
-        description="OpenAPI tags for the router"
-    )
+    dependencies: list[str] = Field(default_factory=list, description="List of Python package dependencies")
+    module_dependencies: list[str] = Field(default_factory=list, description="List of other modules this module depends on")
+    common_dependencies: list[str] = Field(default_factory=list, description="List of common utility modules (e.g., ['pagination', 'search'])")
+    python_version: str = Field(default=">=3.12", description="Required Python version")
+    env: dict[str, str] = Field(default_factory=dict, description="Environment variables with default values")
+    settings_class: Optional[str] = Field(default=None, description="Name of the settings class in the module")
+    router_prefix: str = Field(default="/api/v1", description="URL prefix for the router")
+    tags: list[str] = Field(default_factory=list, description="OpenAPI tags for the router")
     author: Optional[str] = Field(default=None, description="Module author")
     repository: Optional[str] = Field(default=None, description="Module repository URL")
 
@@ -146,21 +122,12 @@ class RegistryManager:
         results = {}
 
         for module_name, metadata in self._registry.items():
-            if (
-                query_lower in module_name.lower()
-                or query_lower in metadata.name.lower()
-                or query_lower in metadata.description.lower()
-            ):
+            if query_lower in module_name.lower() or query_lower in metadata.name.lower() or query_lower in metadata.description.lower():
                 results[module_name] = metadata
 
         return results
 
-    def add_module(
-        self,
-        module_name: str,
-        metadata: ModuleMetadata,
-        save: bool = True
-    ) -> None:
+    def add_module(self, module_name: str, metadata: ModuleMetadata, save: bool = True) -> None:
         """
         Add a new module to the registry.
 
@@ -180,12 +147,7 @@ class RegistryManager:
         if save:
             self._save_registry()
 
-    def update_module(
-        self,
-        module_name: str,
-        metadata: ModuleMetadata,
-        save: bool = True
-    ) -> None:
+    def update_module(self, module_name: str, metadata: ModuleMetadata, save: bool = True) -> None:
         """
         Update existing module metadata.
 
@@ -226,10 +188,7 @@ class RegistryManager:
 
     def _save_registry(self) -> None:
         """Save registry to JSON file."""
-        data = {
-            module_name: metadata.model_dump(exclude_none=True)
-            for module_name, metadata in self._registry.items()
-        }
+        data = {module_name: metadata.model_dump(exclude_none=True) for module_name, metadata in self._registry.items()}
 
         with open(self.registry_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)

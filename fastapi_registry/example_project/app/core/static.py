@@ -30,9 +30,7 @@ def setup_static_routes(app: FastAPI) -> None:
 
         webfonts_path = dist_path / "webfonts"
         if webfonts_path.exists():
-            app.mount(
-                "/webfonts", StaticFiles(directory=str(webfonts_path)), name="webfonts"
-            )
+            app.mount("/webfonts", StaticFiles(directory=str(webfonts_path)), name="webfonts")
 
 
 @router.get("/favicon.ico", include_in_schema=False)

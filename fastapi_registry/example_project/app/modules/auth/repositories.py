@@ -10,9 +10,11 @@ from datetime import UTC, datetime, timedelta
 
 try:
     from ulid import ULID
+
     USE_ULID = True
 except ImportError:
     import uuid
+
     USE_ULID = False
 
 from fastapi import Depends
@@ -52,7 +54,6 @@ class UserRepository(UserRepositoryInterface):
         """
         self.db = db
 
-
     async def create_user(self, email: str, password: str, full_name: str, is_admin: bool = False) -> User:
         """Create a new user in database."""
         # Normalize email to lowercase for case-insensitive storage
@@ -73,31 +74,14 @@ class UserRepository(UserRepositoryInterface):
             user_id = str(uuid.uuid4())
 
         # Create UserDB instance
-        user_db = UserDB(
-            id=user_id,
-            email=normalized_email,
-            name=full_name,
-            hashed_password=get_password_hash(password),
-            is_active=True,
-            is_admin=is_admin,
-            created_at=datetime.now(UTC)
-        )
+        user_db = UserDB(id=user_id, email=normalized_email, name=full_name, hashed_password=get_password_hash(password), is_active=True, is_admin=is_admin, created_at=datetime.now(UTC))
 
         self.db.add(user_db)
         await self.db.commit()
         await self.db.refresh(user_db)
 
         # Convert to Pydantic User model for response
-        return User(
-            id=user_db.id,
-            email=user_db.email,
-            name=user_db.name,
-            hashedPassword=user_db.hashed_password,
-            isActive=user_db.is_active,
-            isAdmin=user_db.is_admin,
-            createdAt=user_db.created_at
-        )
-
+        return User(id=user_db.id, email=user_db.email, name=user_db.name, hashedPassword=user_db.hashed_password, isActive=user_db.is_active, isAdmin=user_db.is_admin, createdAt=user_db.created_at)
 
     async def get_user_by_email(self, email: str) -> User | None:
         """Get user by email from database."""
@@ -120,9 +104,8 @@ class UserRepository(UserRepositoryInterface):
             isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
-            resetTokenExpiry=user_db.reset_token_expiry
+            resetTokenExpiry=user_db.reset_token_expiry,
         )
-
 
     async def get_user_by_id(self, user_id: str) -> User | None:
         """Get user by ID from database."""
@@ -143,9 +126,8 @@ class UserRepository(UserRepositoryInterface):
             isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
-            resetTokenExpiry=user_db.reset_token_expiry
+            resetTokenExpiry=user_db.reset_token_expiry,
         )
-
 
     async def get_all_users(self) -> list[User]:
         """Get all users from database."""
@@ -164,11 +146,10 @@ class UserRepository(UserRepositoryInterface):
                 isAdmin=user_db.is_admin,
                 createdAt=user_db.created_at,
                 resetToken=user_db.reset_token,
-                resetTokenExpiry=user_db.reset_token_expiry
+                resetTokenExpiry=user_db.reset_token_expiry,
             )
             for user_db in users_db
         ]
-
 
     async def update_user(self, user: User) -> User:
         """Update user in database."""
@@ -202,9 +183,8 @@ class UserRepository(UserRepositoryInterface):
             isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
-            resetTokenExpiry=user_db.reset_token_expiry
+            resetTokenExpiry=user_db.reset_token_expiry,
         )
-
 
     async def generate_reset_token(self, email: str) -> str | None:
         """Generate and store JWT password reset token for user."""
@@ -220,7 +200,6 @@ class UserRepository(UserRepositoryInterface):
         await self.update_user(user)
 
         return token
-
 
     async def reset_password_with_token(self, token: str, new_password: str) -> bool:
         """Reset password using token."""
@@ -242,7 +221,7 @@ class UserRepository(UserRepositoryInterface):
             isAdmin=user_db.is_admin,
             createdAt=user_db.created_at,
             resetToken=user_db.reset_token,
-            resetTokenExpiry=user_db.reset_token_expiry
+            resetTokenExpiry=user_db.reset_token_expiry,
         )
 
         if user.is_reset_token_valid(token):
@@ -252,7 +231,6 @@ class UserRepository(UserRepositoryInterface):
             return True
 
         return False
-
 
     async def change_password(self, user_id: str, current_password: str, new_password: str) -> bool:
         """Change user password after verifying current password."""
@@ -274,7 +252,7 @@ class UserRepository(UserRepositoryInterface):
         stmt = select(UserDB).where(UserDB.id == user_id)
         result = await self.db.execute(stmt)
         user_db = result.scalar_one_or_none()
-        
+
         if not user_db:
             return False
 

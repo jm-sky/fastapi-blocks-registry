@@ -113,4 +113,3 @@ def require_2fa_rate_limit(max_attempts: int = 5, window_minutes: int = 15):
         return wrapper
 
     return decorator
-

@@ -22,6 +22,7 @@ class Base(DeclarativeBase):
     All database models should inherit from this class.
     Provides common functionality and metadata management.
     """
+
     pass
 
 

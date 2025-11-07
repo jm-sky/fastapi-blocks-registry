@@ -46,5 +46,3 @@ def test_totp_provisioning_uri_contains_email():
     uri = get_totp_provisioning_uri(secret, email)
     assert uri.startswith("otpauth://totp/")
     assert email in uri
-
-

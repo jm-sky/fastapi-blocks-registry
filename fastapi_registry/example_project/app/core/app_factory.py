@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Close database connections
     try:
         from app.core.database import close_db
+
         await close_db()
         logger.info("Database connections closed successfully")
     except Exception as e:
@@ -85,9 +86,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     """
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(
-        request: Request, exc: RequestValidationError
-    ) -> JSONResponse:
+    async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
         """Handle validation errors."""
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -99,9 +98,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def general_exception_handler(
-        request: Request, exc: Exception
-    ) -> JSONResponse:
+    async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         """Handle unexpected errors."""
         import logging
 
@@ -137,6 +134,7 @@ def register_routers(app: FastAPI) -> None:
     # Import and register module routers here
     try:
         from app.api.router import api_router
+
         app.include_router(api_router, prefix="/api", tags=["API"])
     except ImportError:
         pass

@@ -19,6 +19,7 @@ class CreateTwoFactorTokenOptions(TypedDict, total=False):
         sub: Subject (User ID) - REQUIRED
         email: User email address - RECOMMENDED
     """
+
     sub: str
     email: str | None
 
@@ -70,7 +71,7 @@ def verify_two_factor_token(token: str) -> TwoFactorTokenPayload:
         jwt.ExpiredSignatureError: If token is expired
         jwt.InvalidTokenError: If token is invalid
     """
-    payload: TwoFactorTokenPayload = jwt.decode( # type: ignore[assignment]
+    payload: TwoFactorTokenPayload = jwt.decode(  # type: ignore[assignment]
         token,
         settings.security.secret_key,
         algorithms=[settings.security.jwt_algorithm],

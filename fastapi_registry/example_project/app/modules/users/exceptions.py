@@ -14,11 +14,7 @@ class UserAlreadyExistsError(Exception):
 
     def __init__(self, email: str = "") -> None:
         self.email = email
-        super().__init__(
-            f"User with email {email} already exists"
-            if email
-            else "User already exists"
-        )
+        super().__init__(f"User with email {email} already exists" if email else "User already exists")
 
 
 class UnauthorizedError(Exception):

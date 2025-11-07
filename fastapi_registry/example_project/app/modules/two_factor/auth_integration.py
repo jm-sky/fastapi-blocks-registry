@@ -40,9 +40,7 @@ class AuthServiceWith2FA(AuthService):
         super().__init__(user_repository)
         self.two_factor_service = two_factor_service
 
-    async def login_user(
-        self, email: str, password: str
-    ) -> LoginResponse | TwoFactorRequiredResponse:
+    async def login_user(self, email: str, password: str) -> LoginResponse | TwoFactorRequiredResponse:
         """Login with 2FA check.
 
         If user has 2FA enabled, returns TwoFactorRequiredResponse instead of tokens.
@@ -82,6 +80,7 @@ class AuthServiceWith2FA(AuthService):
 
             # Get expiration from token
             import jwt
+
             token_payload = jwt.decode(
                 two_factor_token,
                 settings.security.secret_key,
@@ -89,6 +88,7 @@ class AuthServiceWith2FA(AuthService):
                 options={"verify_exp": False},
             )
             from datetime import UTC, datetime
+
             expires_at = datetime.fromtimestamp(token_payload["exp"], tz=UTC)
 
             return TwoFactorRequiredResponse(

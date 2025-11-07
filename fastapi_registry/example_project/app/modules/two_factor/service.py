@@ -27,7 +27,7 @@ def _create_setup_token(data: dict[str, Any]) -> str:
     expires = datetime.now(UTC) + timedelta(minutes=10)
     # Determine token type from data
     token_type = data.get("type", "2fa_setup")
-    
+
     if token_type == "passkey_registration":
         payload: PasskeyRegistrationTokenPayload = {
             "sub": data["sub"],
@@ -46,7 +46,7 @@ def _create_setup_token(data: dict[str, Any]) -> str:
             "exp": int(expires.timestamp()),
             "iat": int(datetime.now(UTC).timestamp()),
         }
-    
+
     return jwt.encode(payload, settings.security.secret_key, algorithm=settings.security.jwt_algorithm)
 
 
@@ -69,7 +69,6 @@ def _verify_setup_token(token: str) -> TotpSetupTokenPayload | PasskeyRegistrati
 class TwoFactorService:
     def __init__(self, repository: TwoFactorRepositoryInterface):
         self.repository = repository
-
 
     async def initiate_totp_setup(self, user_id: str, email: str) -> dict[str, Any]:
         """Start TOTP setup by generating secret, URI and backup codes."""
@@ -94,14 +93,13 @@ class TwoFactorService:
             "expiresAt": datetime.now(UTC) + timedelta(minutes=10),
         }
 
-
     async def verify_totp_setup(self, setup_token: str, code: str) -> dict[str, Any]:
         """Verify initial TOTP code and persist configuration."""
 
         payload = _verify_setup_token(setup_token)
         if payload.get("type") != "2fa_setup":
             raise SetupTokenError("Invalid token type for TOTP setup")
-        
+
         # Type narrowing - payload is TotpSetupTokenPayload at this point
         user_id: str = payload["sub"]
         secret: str = payload["secret"]  # type: ignore[index]
@@ -119,7 +117,6 @@ class TwoFactorService:
         await self.repository.mark_totp_verified(user_id)
 
         return {"success": True, "message": "TOTP enabled"}
-
 
     async def get_totp_status(self, user_id: str) -> dict[str, Any]:
         config = await self.repository.get_totp_config(user_id)
@@ -276,6 +273,7 @@ class TwoFactorService:
             if verify_backup_code(code, backup_codes, used_codes):
                 # Mark backup code as used
                 from .crypto_utils import mark_backup_code_used
+
                 used_codes = mark_backup_code_used(code, used_codes)
                 await self.repository.mark_backup_code_used(user_id, json.dumps(used_codes))
                 is_valid = True
@@ -325,9 +323,7 @@ class TwoFactorService:
             "expiresIn": settings.security.access_token_expires_minutes * 60,
         }
 
-    async def initiate_passkey_registration(
-        self, user_id: str, user_email: str, user_name: str, name: str | None = None
-    ) -> dict[str, Any]:
+    async def initiate_passkey_registration(self, user_id: str, user_email: str, user_name: str, name: str | None = None) -> dict[str, Any]:
         """Initiate passkey registration by generating WebAuthn options."""
         from .webauthn_utils import create_registration_options
 

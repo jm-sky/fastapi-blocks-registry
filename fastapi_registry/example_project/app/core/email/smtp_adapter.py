@@ -11,15 +11,7 @@ logger = logging.getLogger(__name__)
 class SMTPEmailAdapter:
     """SMTP email adapter for sending emails via SMTP server."""
 
-    def __init__(
-        self,
-        host: str,
-        port: int = 587,
-        user: str = "",
-        password: str = "",
-        from_email: str = "noreply@example.com",
-        use_tls: bool = True
-    ):
+    def __init__(self, host: str, port: int = 587, user: str = "", password: str = "", from_email: str = "noreply@example.com", use_tls: bool = True):
         """Initialize SMTP email adapter.
 
         Args:
@@ -37,14 +29,7 @@ class SMTPEmailAdapter:
         self.from_email = from_email
         self.use_tls = use_tls
 
-    async def send_email(
-        self,
-        to: str,
-        subject: str,
-        html_body: str,
-        text_body: str | None = None,
-        from_email: str | None = None
-    ) -> bool:
+    async def send_email(self, to: str, subject: str, html_body: str, text_body: str | None = None, from_email: str | None = None) -> bool:
         """Send email via SMTP.
 
         Args:
@@ -97,4 +82,3 @@ class SMTPEmailAdapter:
         except Exception as e:
             logger.error(f"Failed to send email via SMTP: {e}", exc_info=True)
             return False
-

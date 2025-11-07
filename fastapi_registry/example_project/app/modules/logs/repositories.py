@@ -9,9 +9,11 @@ from datetime import UTC, datetime
 
 try:
     from ulid import ULID
+
     USE_ULID = True
 except ImportError:
     import uuid
+
     USE_ULID = False
 
 from fastapi import Depends
@@ -48,18 +50,7 @@ class LogRepository(SearchMixin):
         self._search_columns = [LogDB.message, LogDB.module, LogDB.function]
         self._case_sensitive = False
 
-
-    async def create_log(
-        self,
-        level: LogLevel,
-        message: str,
-        module: str | None = None,
-        function: str | None = None,
-        user_id: str | None = None,
-        request_id: str | None = None,
-        traceback: str | None = None,
-        extra_data: str | None = None
-    ) -> Log:
+    async def create_log(self, level: LogLevel, message: str, module: str | None = None, function: str | None = None, user_id: str | None = None, request_id: str | None = None, traceback: str | None = None, extra_data: str | None = None) -> Log:
         """Create a new log entry in database."""
         # Generate new ID (ULID if available, otherwise UUID)
         if USE_ULID:
@@ -68,18 +59,7 @@ class LogRepository(SearchMixin):
             log_id = str(uuid.uuid4())
 
         # Create LogDB instance
-        log_db = LogDB(
-            id=log_id,
-            level=level.value,
-            message=message,
-            module=module,
-            function=function,
-            user_id=user_id,
-            request_id=request_id,
-            traceback=traceback,
-            extra_data=extra_data,
-            created_at=datetime.now(UTC)
-        )
+        log_db = LogDB(id=log_id, level=level.value, message=message, module=module, function=function, user_id=user_id, request_id=request_id, traceback=traceback, extra_data=extra_data, created_at=datetime.now(UTC))
 
         self.db.add(log_db)
         await self.db.commit()
@@ -87,7 +67,6 @@ class LogRepository(SearchMixin):
 
         # Convert to Pydantic Log model for response
         return Log.model_validate(log_db)
-
 
     async def get_log_by_id(self, log_id: str) -> Log | None:
         """Get log by ID from database."""
@@ -101,7 +80,6 @@ class LogRepository(SearchMixin):
         # Convert to Pydantic Log model
         return Log.model_validate(log_db)
 
-
     async def get_logs(
         self,
         skip: int = 0,
@@ -112,7 +90,7 @@ class LogRepository(SearchMixin):
         module: str | None = None,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
-        search: str | None = None
+        search: str | None = None,
     ) -> list[Log]:
         """Get logs from database with filters, search, and pagination.
 
@@ -166,20 +144,9 @@ class LogRepository(SearchMixin):
         # Convert to Pydantic Log models
         return [Log.model_validate(log_db) for log_db in logs_db]
 
-
-    async def get_error_logs(
-        self,
-        skip: int = 0,
-        limit: int = 100,
-        user_id: str | None = None
-    ) -> list[Log]:
+    async def get_error_logs(self, skip: int = 0, limit: int = 100, user_id: str | None = None) -> list[Log]:
         """Get only ERROR and CRITICAL level logs."""
-        stmt = select(LogDB).where(
-            or_(
-                LogDB.level == LogLevel.ERROR.value,
-                LogDB.level == LogLevel.CRITICAL.value
-            )
-        )
+        stmt = select(LogDB).where(or_(LogDB.level == LogLevel.ERROR.value, LogDB.level == LogLevel.CRITICAL.value))
 
         if user_id:
             stmt = stmt.where(LogDB.user_id == user_id)
@@ -191,15 +158,7 @@ class LogRepository(SearchMixin):
 
         return [Log.model_validate(log_db) for log_db in logs_db]
 
-
-    async def count_logs(
-        self,
-        level: LogLevel | None = None,
-        user_id: str | None = None,
-        start_date: datetime | None = None,
-        end_date: datetime | None = None,
-        search: str | None = None
-    ) -> int:
+    async def count_logs(self, level: LogLevel | None = None, user_id: str | None = None, start_date: datetime | None = None, end_date: datetime | None = None, search: str | None = None) -> int:
         """Count logs with optional filters and search.
 
         Args:
@@ -233,7 +192,6 @@ class LogRepository(SearchMixin):
 
         result = await self.db.execute(stmt)
         return result.scalar_one()
-
 
     async def delete_old_logs(self, before_date: datetime) -> int:
         """Delete logs older than specified date.

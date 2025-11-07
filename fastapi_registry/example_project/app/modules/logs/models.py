@@ -30,10 +30,7 @@ class Log(BaseModel):
     extraData: str | None = Field(None, alias="extra_data")
     createdAt: datetime = Field(alias="created_at")
 
-    model_config = {
-        "populate_by_name": True,
-        "from_attributes": True
-    }
+    model_config = {"populate_by_name": True, "from_attributes": True}
 
     def to_response(self) -> dict[str, Any]:
         """Convert to camelCase response format."""
@@ -47,7 +44,7 @@ class Log(BaseModel):
             "requestId": self.requestId,
             "traceback": self.traceback,
             "extraData": self.extraData,
-            "createdAt": self.createdAt
+            "createdAt": self.createdAt,
         }
 
 
@@ -66,6 +63,4 @@ class LogCreate(BaseModel):
     traceback: str | None = None
     extraData: str | None = None
 
-    model_config = {
-        "populate_by_name": True
-    }
+    model_config = {"populate_by_name": True}

@@ -10,9 +10,11 @@ from datetime import UTC, datetime
 
 try:
     from ulid import ULID
+
     USE_ULID = True
 except ImportError:
     import uuid
+
     USE_ULID = False
 
 from fastapi import Depends
@@ -50,7 +52,6 @@ class UserRepository(SearchMixin):
         self._search_columns = [UserDB.name, UserDB.email, UserDB.role]
         self._case_sensitive = False
 
-
     async def create_user(self, email: str, name: str, role: str = "user") -> User:
         """Create a new user in database."""
         # Normalize email to lowercase for case-insensitive storage
@@ -73,31 +74,14 @@ class UserRepository(SearchMixin):
         now = datetime.now(UTC)
 
         # Create UserDB instance
-        user_db = UserDB(
-            id=user_id,
-            email=normalized_email,
-            name=name,
-            role=role,
-            is_active=True,
-            created_at=now,
-            updated_at=now
-        )
+        user_db = UserDB(id=user_id, email=normalized_email, name=name, role=role, is_active=True, created_at=now, updated_at=now)
 
         self.db.add(user_db)
         await self.db.commit()
         await self.db.refresh(user_db)
 
         # Convert to Pydantic User model for response
-        return User(
-            id=user_db.id,
-            email=user_db.email,
-            name=user_db.name,
-            role=user_db.role,
-            isActive=user_db.is_active,
-            createdAt=user_db.created_at,
-            updatedAt=user_db.updated_at
-        )
-
+        return User(id=user_db.id, email=user_db.email, name=user_db.name, role=user_db.role, isActive=user_db.is_active, createdAt=user_db.created_at, updatedAt=user_db.updated_at)
 
     async def get_user_by_email(self, email: str) -> User | None:
         """Get user by email from database."""
@@ -111,16 +95,7 @@ class UserRepository(SearchMixin):
             return None
 
         # Convert to Pydantic User model
-        return User(
-            id=user_db.id,
-            email=user_db.email,
-            name=user_db.name,
-            role=user_db.role,
-            isActive=user_db.is_active,
-            createdAt=user_db.created_at,
-            updatedAt=user_db.updated_at
-        )
-
+        return User(id=user_db.id, email=user_db.email, name=user_db.name, role=user_db.role, isActive=user_db.is_active, createdAt=user_db.created_at, updatedAt=user_db.updated_at)
 
     async def get_user_by_id(self, user_id: str) -> User | None:
         """Get user by ID from database."""
@@ -132,24 +107,9 @@ class UserRepository(SearchMixin):
             return None
 
         # Convert to Pydantic User model
-        return User(
-            id=user_db.id,
-            email=user_db.email,
-            name=user_db.name,
-            role=user_db.role,
-            isActive=user_db.is_active,
-            createdAt=user_db.created_at,
-            updatedAt=user_db.updated_at
-        )
+        return User(id=user_db.id, email=user_db.email, name=user_db.name, role=user_db.role, isActive=user_db.is_active, createdAt=user_db.created_at, updatedAt=user_db.updated_at)
 
-
-    async def get_all_users(
-        self,
-        skip: int = 0,
-        limit: int = 100,
-        include_inactive: bool = False,
-        search: str | None = None
-    ) -> list[User]:
+    async def get_all_users(self, skip: int = 0, limit: int = 100, include_inactive: bool = False, search: str | None = None) -> list[User]:
         """Get all users from database with pagination and search.
 
         Args:
@@ -176,19 +136,7 @@ class UserRepository(SearchMixin):
         users_db = result.scalars().all()
 
         # Convert to Pydantic User models
-        return [
-            User(
-                id=user_db.id,
-                email=user_db.email,
-                name=user_db.name,
-                role=user_db.role,
-                isActive=user_db.is_active,
-                createdAt=user_db.created_at,
-                updatedAt=user_db.updated_at
-            )
-            for user_db in users_db
-        ]
-
+        return [User(id=user_db.id, email=user_db.email, name=user_db.name, role=user_db.role, isActive=user_db.is_active, createdAt=user_db.created_at, updatedAt=user_db.updated_at) for user_db in users_db]
 
     async def update_user(
         self,
@@ -233,16 +181,7 @@ class UserRepository(SearchMixin):
         await self.db.refresh(user_db)
 
         # Return updated user as Pydantic model
-        return User(
-            id=user_db.id,
-            email=user_db.email,
-            name=user_db.name,
-            role=user_db.role,
-            isActive=user_db.is_active,
-            createdAt=user_db.created_at,
-            updatedAt=user_db.updated_at
-        )
-
+        return User(id=user_db.id, email=user_db.email, name=user_db.name, role=user_db.role, isActive=user_db.is_active, createdAt=user_db.created_at, updatedAt=user_db.updated_at)
 
     async def delete_user(self, user_id: str) -> bool:
         """Delete user (soft delete - set is_active to False)."""
@@ -259,7 +198,6 @@ class UserRepository(SearchMixin):
         await self.db.commit()
         return True
 
-
     async def hard_delete_user(self, user_id: str) -> bool:
         """Permanently delete user from database."""
         stmt = select(UserDB).where(UserDB.id == user_id)
@@ -273,12 +211,7 @@ class UserRepository(SearchMixin):
         await self.db.commit()
         return True
 
-
-    async def count_users(
-        self,
-        include_inactive: bool = False,
-        search: str | None = None
-    ) -> int:
+    async def count_users(self, include_inactive: bool = False, search: str | None = None) -> int:
         """Count total users in database with optional search.
 
         Args:

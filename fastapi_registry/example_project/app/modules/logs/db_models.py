@@ -15,6 +15,7 @@ from app.core.database import Base
 
 class LogLevel(str, Enum):
     """Log level enumeration."""
+
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -44,9 +45,7 @@ class LogDB(Base):
     __tablename__ = "logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)  # ULID
-    level: Mapped[str] = mapped_column(
-        String(20), nullable=False, index=True
-    )
+    level: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     module: Mapped[str] = mapped_column(String(255), nullable=True)
     function: Mapped[str] = mapped_column(String(255), nullable=True)
@@ -54,17 +53,12 @@ class LogDB(Base):
     request_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     traceback: Mapped[str | None] = mapped_column(Text, nullable=True)
     extra_data: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-        nullable=False,
-        index=True
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False, index=True)
 
     # Composite indexes for common queries
     __table_args__ = (
-        Index('ix_logs_level_created_at', 'level', 'created_at'),
-        Index('ix_logs_user_created_at', 'user_id', 'created_at'),
+        Index("ix_logs_level_created_at", "level", "created_at"),
+        Index("ix_logs_user_created_at", "user_id", "created_at"),
     )
 
     def __repr__(self) -> str:

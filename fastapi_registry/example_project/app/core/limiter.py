@@ -84,9 +84,7 @@ def rate_limit(limit_string: str):
 
 
 # Custom rate limit exceeded handler (optional, for custom responses)
-async def custom_rate_limit_handler(
-    request: Request, exc: RateLimitExceeded
-) -> JSONResponse:
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """
     Custom handler for rate limit exceeded errors.
 

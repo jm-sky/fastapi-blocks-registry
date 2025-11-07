@@ -70,15 +70,7 @@ async def get_current_user() -> User:
     # Returns a fake user for testing purposes
     from datetime import UTC, datetime
 
-    return User(
-        id="mock-user-id",
-        email="mock@example.com",
-        name="Mock User",
-        role="admin",
-        isActive=True,
-        createdAt=datetime.now(UTC),
-        updatedAt=datetime.now(UTC)
-    )
+    return User(id="mock-user-id", email="mock@example.com", name="Mock User", role="admin", isActive=True, createdAt=datetime.now(UTC), updatedAt=datetime.now(UTC))
 
 
 async def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> User:

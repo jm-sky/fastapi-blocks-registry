@@ -16,16 +16,11 @@ from .repositories import get_user_repository
 security = HTTPBearer()
 
 
-def get_auth_service(
-    user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)]
-) -> AuthService:
+def get_auth_service(user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)]) -> AuthService:
     return AuthService(user_repository)
 
 
-async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-    user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)]
-) -> User:
+async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)], user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)]) -> User:
     """
     Get current authenticated user from JWT token.
 

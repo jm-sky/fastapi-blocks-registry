@@ -21,12 +21,7 @@ class ModuleInstaller:
         self.registry = registry
         self.registry_base_path = registry_base_path
 
-    def install_module(
-        self,
-        module_name: str,
-        project_path: Path,
-        create_backup: bool = True
-    ) -> None:
+    def install_module(self, module_name: str, project_path: Path, create_backup: bool = True) -> None:
         """
         Install a module to a FastAPI project.
 
@@ -53,17 +48,11 @@ class ModuleInstaller:
 
         # Check if module already exists
         if dst_path.exists():
-            raise FileExistsError(
-                f"Module '{module_name}' already exists at {dst_path}. "
-                "Remove it first if you want to reinstall."
-            )
+            raise FileExistsError(f"Module '{module_name}' already exists at {dst_path}. " "Remove it first if you want to reinstall.")
 
         # Verify source module exists
         if not src_path.exists():
-            raise ValueError(
-                f"Module source not found at {src_path}. "
-                "Registry may be corrupted."
-            )
+            raise ValueError(f"Module source not found at {src_path}. " "Registry may be corrupted.")
 
         # Copy module files
         file_utils.copy_directory(src_path, dst_path)
@@ -75,28 +64,17 @@ class ModuleInstaller:
         # Update requirements.txt
         requirements_path = project_path / "requirements.txt"
         if module.dependencies:
-            file_utils.update_requirements(
-                requirements_path,
-                module.dependencies,
-                create_if_missing=True
-            )
+            file_utils.update_requirements(requirements_path, module.dependencies, create_if_missing=True)
 
         # Update .env file
         env_path = project_path / ".env"
         if module.env:
-            file_utils.update_env_file(
-                env_path,
-                module.env,
-                create_if_missing=True
-            )
+            file_utils.update_env_file(env_path, module.env, create_if_missing=True)
 
         # Update .gitignore for modules that need exceptions (e.g., logs)
         gitignore_path = project_path / ".gitignore"
         if module_name == "logs":
-            file_utils.update_gitignore_for_logs_module(
-                gitignore_path,
-                create_if_missing=True
-            )
+            file_utils.update_gitignore_for_logs_module(gitignore_path, create_if_missing=True)
 
         # Update app/api/router.py to register the module router
         router_py_path = project_path / "app" / "api" / "router.py"
@@ -104,12 +82,7 @@ class ModuleInstaller:
             if create_backup:
                 file_utils.create_backup(router_py_path)
 
-            file_utils.add_router_to_api_router(
-                router_py_path,
-                module_name,
-                module.router_prefix,
-                module.tags
-            )
+            file_utils.add_router_to_api_router(router_py_path, module_name, module.router_prefix, module.tags)
         else:
             # If router.py not found, try legacy main.py approach
             main_py_path = file_utils.find_main_py(project_path)
@@ -117,16 +90,9 @@ class ModuleInstaller:
                 if create_backup:
                     file_utils.create_backup(main_py_path)
 
-                file_utils.add_router_to_main(
-                    main_py_path,
-                    module_name,
-                    module.router_prefix,
-                    module.tags
-                )
+                file_utils.add_router_to_main(main_py_path, module_name, module.router_prefix, module.tags)
 
-    def _install_common_dependencies(
-        self, common_deps: list[str], project_path: Path
-    ) -> None:
+    def _install_common_dependencies(self, common_deps: list[str], project_path: Path) -> None:
         """
         Install common utility dependencies.
 
@@ -161,10 +127,7 @@ class ModuleInstaller:
 
             # Verify source file exists
             if not src_path.exists():
-                raise ValueError(
-                    f"Common dependency '{common_dep}' not found at {src_path}. "
-                    "Registry may be corrupted."
-                )
+                raise ValueError(f"Common dependency '{common_dep}' not found at {src_path}. " "Registry may be corrupted.")
 
             # Copy the file
             file_utils.copy_file(src_path, dst_path)
@@ -196,12 +159,7 @@ class ModuleInstaller:
         if not modules_init.exists():
             file_utils.write_file(modules_init, '"""FastAPI modules package."""\n')
 
-    def uninstall_module(
-        self,
-        module_name: str,
-        project_path: Path,
-        remove_dependencies: bool = False
-    ) -> None:
+    def uninstall_module(self, module_name: str, project_path: Path, remove_dependencies: bool = False) -> None:
         """
         Uninstall a module from a FastAPI project.
 
@@ -223,6 +181,7 @@ class ModuleInstaller:
             raise ValueError(f"Module '{module_name}' not found in project")
 
         import shutil
+
         shutil.rmtree(module_path)
 
         # Note: We don't automatically remove dependencies or router registration

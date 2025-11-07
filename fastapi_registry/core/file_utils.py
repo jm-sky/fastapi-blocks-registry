@@ -57,11 +57,7 @@ def append_to_file(file_path: Path, content: str) -> None:
         f.write(content)
 
 
-def update_requirements(
-    requirements_path: Path,
-    new_dependencies: List[str],
-    create_if_missing: bool = True
-) -> None:
+def update_requirements(requirements_path: Path, new_dependencies: List[str], create_if_missing: bool = True) -> None:
     """
     Add new dependencies to requirements.txt without duplicates.
 
@@ -78,17 +74,10 @@ def update_requirements(
 
     # Read existing dependencies
     existing_content = read_file(requirements_path)
-    existing_deps = {
-        line.split("==")[0].split(">=")[0].split("<=")[0].strip()
-        for line in existing_content.splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    }
+    existing_deps = {line.split("==")[0].split(">=")[0].split("<=")[0].strip() for line in existing_content.splitlines() if line.strip() and not line.strip().startswith("#")}
 
     # Filter out dependencies that already exist
-    deps_to_add = [
-        dep for dep in new_dependencies
-        if dep.split("==")[0].split(">=")[0].split("<=")[0].strip() not in existing_deps
-    ]
+    deps_to_add = [dep for dep in new_dependencies if dep.split("==")[0].split(">=")[0].split("<=")[0].strip() not in existing_deps]
 
     if deps_to_add:
         # Add newline if file doesn't end with one
@@ -99,11 +88,7 @@ def update_requirements(
         append_to_file(requirements_path, "\n".join(deps_to_add) + "\n")
 
 
-def update_env_file(
-    env_path: Path,
-    new_vars: dict[str, str],
-    create_if_missing: bool = True
-) -> None:
+def update_env_file(env_path: Path, new_vars: dict[str, str], create_if_missing: bool = True) -> None:
     """
     Add new environment variables to .env file without overwriting existing ones.
 
@@ -120,17 +105,10 @@ def update_env_file(
 
     # Read existing variables
     existing_content = read_file(env_path)
-    existing_vars = {
-        line.split("=")[0].strip()
-        for line in existing_content.splitlines()
-        if line.strip() and not line.strip().startswith("#") and "=" in line
-    }
+    existing_vars = {line.split("=")[0].strip() for line in existing_content.splitlines() if line.strip() and not line.strip().startswith("#") and "=" in line}
 
     # Filter out variables that already exist
-    vars_to_add = {
-        key: value for key, value in new_vars.items()
-        if key not in existing_vars
-    }
+    vars_to_add = {key: value for key, value in new_vars.items() if key not in existing_vars}
 
     if vars_to_add:
         # Add newline if file doesn't end with one
@@ -170,12 +148,7 @@ def find_main_py(project_path: Path) -> Optional[Path]:
     return None
 
 
-def add_router_to_main(
-    main_py_path: Path,
-    module_name: str,
-    router_prefix: str,
-    tags: List[str]
-) -> None:
+def add_router_to_main(main_py_path: Path, module_name: str, router_prefix: str, tags: List[str]) -> None:
     """
     Add router import and registration to main.py.
 
@@ -204,10 +177,7 @@ def add_router_to_main(
 
     if import_marker in content:
         # Add import after marker
-        content = content.replace(
-            import_marker,
-            f"{import_marker}\n{import_line}"
-        )
+        content = content.replace(import_marker, f"{import_marker}\n{import_line}")
     else:
         # Add marker and import at the beginning (after existing imports)
         import_section_end = find_last_import_line(content)
@@ -221,10 +191,7 @@ def add_router_to_main(
 
     if router_marker in content:
         # Add router after marker
-        content = content.replace(
-            router_marker,
-            f"{router_marker}\n{router_line}"
-        )
+        content = content.replace(router_marker, f"{router_marker}\n{router_line}")
     else:
         # Try to find app = FastAPI() or similar
         app_pattern = re.compile(r"app\s*=\s*(?:FastAPI|create_app)\(")
@@ -269,12 +236,7 @@ def find_last_import_line(content: str) -> Optional[int]:
     return last_import_line
 
 
-def add_router_to_api_router(
-    router_py_path: Path,
-    module_name: str,
-    router_prefix: str,
-    tags: List[str]
-) -> None:
+def add_router_to_api_router(router_py_path: Path, module_name: str, router_prefix: str, tags: List[str]) -> None:
     """
     Add router import and registration to app/api/router.py.
 
@@ -299,7 +261,7 @@ def add_router_to_api_router(
     import_exists = False
     for line in lines:
         stripped = line.strip()
-        if stripped == import_line or stripped == import_line + '\n':
+        if stripped == import_line or stripped == import_line + "\n":
             import_exists = True
             break
 
@@ -307,7 +269,7 @@ def add_router_to_api_router(
     router_exists = False
     for line in lines:
         stripped = line.strip()
-        if router_line in stripped and not stripped.startswith('#'):
+        if router_line in stripped and not stripped.startswith("#"):
             router_exists = True
             break
 
@@ -369,7 +331,7 @@ def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bo
     """
     # Modules that need .gitignore exceptions
     MODULES_NEEDING_EXCEPTION = ["logs"]
-    
+
     if not gitignore_path.exists():
         if create_if_missing:
             write_file(gitignore_path, "")
@@ -377,21 +339,21 @@ def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bo
             return  # Don't create if not requested
 
     content = read_file(gitignore_path)
-    
+
     # Check if exception already exists
     exception_pattern = r"!app/modules/logs"
     if re.search(exception_pattern, content):
         return  # Already added
-    
+
     # Find where to add the exception (after "logs/" pattern if it exists)
     logs_pattern = re.compile(r"^logs/", re.MULTILINE)
     match = logs_pattern.search(content)
-    
+
     if match:
         # Add exception right after the logs/ pattern
         lines = content.splitlines(keepends=True)
-        match_line = content[:match.end()].count("\n")
-        
+        match_line = content[: match.end()].count("\n")
+
         # Insert exception with comment
         exception_line = f"!app/modules/logs  # Added by fastapi-registry for logs module\n"
         lines.insert(match_line + 1, exception_line)
@@ -404,5 +366,5 @@ def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bo
         content += "*.log\n"
         content += "logs/\n"
         content += "!app/modules/logs  # Added by fastapi-registry for logs module\n"
-    
+
     write_file(gitignore_path, content)

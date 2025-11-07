@@ -12,14 +12,7 @@ class EmailAdapter(ABC):
     """
 
     @abstractmethod
-    async def send_email(
-        self,
-        to: str,
-        subject: str,
-        html_body: str,
-        text_body: str | None = None,
-        from_email: str | None = None
-    ) -> bool:
+    async def send_email(self, to: str, subject: str, html_body: str, text_body: str | None = None, from_email: str | None = None) -> bool:
         """Send an email.
 
         Args:
@@ -33,4 +26,3 @@ class EmailAdapter(ABC):
             True if email sent successfully, False otherwise
         """
         ...
-

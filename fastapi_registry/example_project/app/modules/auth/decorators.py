@@ -106,15 +106,9 @@ def recaptcha_protected(action: str):
             # Verify reCAPTCHA token
             if request_data and hasattr(request_data, "recaptchaToken"):
                 try:
-                    await verify_recaptcha(
-                        request_data.recaptchaToken or "",
-                        action=action
-                    )
+                    await verify_recaptcha(request_data.recaptchaToken or "", action=action)
                 except RecaptchaError as e:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"reCAPTCHA verification failed: {str(e)}"
-                    )
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"reCAPTCHA verification failed: {str(e)}")
 
             return await func(*args, **kwargs)
 

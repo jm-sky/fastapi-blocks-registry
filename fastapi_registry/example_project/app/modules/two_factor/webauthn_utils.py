@@ -109,4 +109,3 @@ def verify_registration(
         "backup_eligible": verification.credential_backup_eligible,
         "backup_state": verification.credential_backed_up,
     }
-

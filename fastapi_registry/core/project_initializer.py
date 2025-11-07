@@ -41,19 +41,14 @@ class ProjectInitializer:
         """
         # Validate example_project exists
         if not self.example_project_path.exists():
-            raise ValueError(
-                f"Example project not found: {self.example_project_path}. "
-                "Package may be corrupted."
-            )
+            raise ValueError(f"Example project not found: {self.example_project_path}. " "Package may be corrupted.")
 
         # Create project directory
         project_path.mkdir(parents=True, exist_ok=True)
 
         # Check if directory is empty
         if any(project_path.iterdir()) and not force:
-            raise FileExistsError(
-                f"Directory {project_path} is not empty. " "Use --force to initialize anyway."
-            )
+            raise FileExistsError(f"Directory {project_path} is not empty. " "Use --force to initialize anyway.")
 
         # Use directory name as project name if not provided
         if project_name is None:
@@ -113,7 +108,7 @@ class ProjectInitializer:
         # Directories to exclude (modules and common utils are added separately by users)
         exclude_dirs = {
             "app/modules",  # Modules are added with 'fastapi-registry add <module>'
-            "app/common",   # Common utilities added as dependencies when needed
+            "app/common",  # Common utilities added as dependencies when needed
         }
 
         # Copy all files from example_project

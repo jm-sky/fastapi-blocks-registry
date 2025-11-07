@@ -19,9 +19,7 @@ def configure_logging() -> None:
     log_level = getattr(logging, settings.logging.level.upper(), logging.INFO)
 
     # Create formatter
-    formatter = logging.Formatter(
-        fmt=settings.logging.format, datefmt="%Y-%m-%d %H:%M:%S"
-    )
+    formatter = logging.Formatter(fmt=settings.logging.format, datefmt="%Y-%m-%d %H:%M:%S")
 
     # Configure root logger
     root_logger = logging.getLogger()
@@ -55,9 +53,7 @@ def configure_logging() -> None:
         if settings.database.echo:
             logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
-    logging.info(
-        f"Logging configured: level={settings.logging.level}, environment={settings.app.environment}"
-    )
+    logging.info(f"Logging configured: level={settings.logging.level}, environment={settings.app.environment}")
 
 
 class ServiceLogger:
