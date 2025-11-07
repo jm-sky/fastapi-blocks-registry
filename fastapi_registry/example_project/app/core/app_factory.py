@@ -147,3 +147,8 @@ def register_routers(app: FastAPI) -> None:
             "version": settings.app.version,
             "docs": "/api/docs" if settings.is_development() else None,
         }
+
+    @app.get("/health", tags=["System"])
+    async def health_check() -> dict:
+        """Health check endpoint."""
+        return {"status": "healthy"}

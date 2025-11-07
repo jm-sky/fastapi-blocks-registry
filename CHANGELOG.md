@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
+## [0.2.14] - 2025-11-07
+
+### Changed
+- **Router structure improvements**: Enhanced router.py organization with better comments and proper module registration
+  - Moved module imports to top of file for better code organization
+  - Added explicit router registration with proper prefixes and tags
+  - Improved two-factor module registration with better error handling and comments
+- **Health check endpoint**: Added health check endpoint to app_factory.py for system monitoring
+
+### Documentation
+- **Account deletion plan**: Added comprehensive plan for user account deletion functionality
+- **Email notifications plan**: Added detailed plan for email notification system
+- **Issue documentation**: Added documentation for various issues and fixes from v0.2.13
+
 ## [0.2.13] - 2025-11-07
 
 ### Fixed
@@ -361,7 +375,8 @@ If you have modules or customizations based on v0.1.x:
 [0.2.11]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.10...v0.2.11
 [0.2.12]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.11...v0.2.12
 [0.2.13]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.12...v0.2.13
-[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.13...HEAD
+[0.2.14]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.13...v0.2.14
+[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.14...HEAD
 [0.1.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.4...v0.1.6
 [0.1.4]: https://github.com/jm-sky/fastapi-blocks-registry/releases/tag/v0.1.4
