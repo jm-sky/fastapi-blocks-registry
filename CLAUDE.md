@@ -4,7 +4,7 @@
 
 This is a modular scaffolding system for FastAPI backends, inspired by shadcn-vue. It allows developers to add complete, production-ready modules (like `auth`, `users`, `billing`) to their FastAPI projects with a single CLI command.
 
-## Architecture Overview (Updated 2025-10-30)
+## Architecture Overview (Updated 2025-11-07)
 
 This project uses a **Mirror Target Structure** approach where the registry structure mirrors the end-user project structure exactly. This enables:
 - Full IDE support (syntax highlighting, type checking, autocomplete)
@@ -205,7 +205,7 @@ Each module must be:
     "name": "Human-readable Name",
     "description": "What this module does",
     "version": "1.0.0",
-    "path": "modules/module_name",
+    "path": "example_project/app/modules/module_name",
     "dependencies": ["package1", "package2"],
     "python_version": ">=3.11",
     "env": {
@@ -305,19 +305,31 @@ fastapi-blocks-registry/
 │   ├── __init__.py
 │   ├── cli.py                  # CLI entry point
 │   ├── registry.json           # Module registry
-│   ├── modules/                # Module templates
-│   │   ├── auth/
-│   │   ├── users/
-│   │   └── ...
-│   ├── core/                   # Core utilities
-│   │   ├── installer.py        # Module installation logic
-│   │   ├── registry_manager.py # Registry operations
-│   │   └── file_utils.py       # File manipulation helpers
-│   └── templates/              # Project templates
-│       └── fastapi_project/    # Base FastAPI project template
-├── tests/                      # Test suite
+│   ├── example_project/        # Complete working FastAPI project (Mirror Target Structure)
+│   │   ├── main.py
+│   │   ├── requirements.txt
+│   │   ├── app/
+│   │   │   ├── core/           # Core utilities (config, database, etc.)
+│   │   │   ├── modules/        # Feature modules (1:1 with target)
+│   │   │   │   ├── auth/       # Authentication module
+│   │   │   │   ├── users/      # Users module
+│   │   │   │   ├── logs/       # Logging module
+│   │   │   │   └── two_factor/ # 2FA module
+│   │   │   ├── common/         # Common utilities
+│   │   │   └── exceptions/     # Exception handlers
+│   │   ├── tests/              # Test suite
+│   │   └── cli/                # CLI commands
+│   ├── templates_j2/           # Jinja2 templates (ONLY files with variables)
+│   │   ├── README.md.j2
+│   │   ├── env.j2
+│   │   └── config.py.j2
+│   └── core/                   # CLI core utilities
+│       ├── installer.py        # Module installation logic
+│       ├── registry_manager.py # Registry operations
+│       ├── project_initializer.py # Project initialization
+│       └── file_utils.py       # File manipulation helpers
+├── tests/                      # Package-level tests
 ├── docs/                       # Documentation
-├── examples/                   # Example projects
 ├── requirements.txt            # Package dependencies
 ├── pyproject.toml             # Package configuration
 ├── README.md
@@ -342,3 +354,4 @@ fastapi-blocks-registry/
 - [SQLAlchemy 2.0 Documentation](https://docs.sqlalchemy.org/)
 - [shadcn-vue](https://github.com/shadcn-ui/ui) - Inspiration for this project
 - Zapamiętaj aby aktywować Pythons virtual environment z katalogu .venv
+- Po zmianach w kodzie powinniśmy formatować kod za pomocą `black`. Jeżeli coś bardzo źle sformatuje, to trzeba poprawić konfigurację.
