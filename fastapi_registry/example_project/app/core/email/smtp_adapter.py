@@ -5,11 +5,20 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from smtplib import SMTP, SMTP_SSL
 
+from app.core.email.adapter import EmailAdapter
+
 logger = logging.getLogger(__name__)
 
 
-class SMTPEmailAdapter:
+class SMTPEmailAdapter(EmailAdapter):
     """SMTP email adapter for sending emails via SMTP server."""
+
+    host: str
+    port: int
+    user: str
+    password: str
+    from_email: str
+    use_tls: bool
 
     def __init__(self, host: str, port: int = 587, user: str = "", password: str = "", from_email: str = "noreply@example.com", use_tls: bool = True):
         """Initialize SMTP email adapter.
@@ -58,6 +67,8 @@ class SMTPEmailAdapter:
 
             html_part = MIMEText(html_body, "html", "utf-8")
             msg.attach(html_part)
+
+            server: SMTP_SSL | SMTP
 
             # Send email
             if self.port == 465:

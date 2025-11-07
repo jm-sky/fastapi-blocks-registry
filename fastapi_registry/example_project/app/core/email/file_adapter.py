@@ -16,8 +16,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class FileEmailAdapter:
+class FileEmailAdapter(EmailAdapter):
     """File-based email adapter that saves emails to files."""
+
+    file_path: Path
+    email_dir: Path
 
     def __init__(self, file_path: str = "./emails"):
         """Initialize file email adapter.

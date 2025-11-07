@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from app.core.config import settings
+from app.core.config import EmailSettings, settings
 
 if TYPE_CHECKING:
     from .adapter import EmailAdapter
@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     """Email service for sending templated emails."""
+
+    adapter: "EmailAdapter"
+    templates_dir: Path
+    jinja_env: Environment
 
     def __init__(self, adapter: "EmailAdapter"):
         """Initialize email service with adapter.
@@ -138,7 +142,7 @@ def get_email_service() -> EmailService:
     from .smtp_adapter import SMTPEmailAdapter
 
     # Get email settings from config
-    email_settings = getattr(settings, "email", None)
+    email_settings: EmailSettings | None = getattr(settings, "email", None)
 
     if not email_settings or not email_settings.enabled:
         # Email disabled, use file adapter as fallback
