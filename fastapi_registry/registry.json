@@ -28,6 +28,7 @@
     "settings_class": "AuthSettings",
     "router_prefix": "/auth",
     "tags": ["Authentication"],
+    "config_dependencies": ["email"],
     "author": "FastAPI Blocks Registry",
     "repository": "https://github.com/yourusername/fastapi-blocks-registry"
   },
@@ -116,6 +117,7 @@
     "settings_class": "TwoFactorSettings",
     "router_prefix": "/two-factor",
     "tags": ["Two-Factor Authentication", "Security", "WebAuthn", "TOTP"],
+    "config_dependencies": ["email"],
     "author": "FastAPI Blocks Registry",
     "repository": "https://github.com/yourusername/fastapi-blocks-registry",
     "features": [

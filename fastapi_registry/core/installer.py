@@ -1,10 +1,9 @@
 """Module installer for adding modules to FastAPI projects."""
 
 from pathlib import Path
-from typing import Optional
 
-from fastapi_registry.core.registry_manager import RegistryManager
 from fastapi_registry.core import file_utils
+from fastapi_registry.core.registry_manager import RegistryManager
 
 
 class ModuleInstaller:
@@ -75,6 +74,17 @@ class ModuleInstaller:
         gitignore_path = project_path / ".gitignore"
         if module_name == "logs":
             file_utils.update_gitignore_for_logs_module(gitignore_path, create_if_missing=True)
+
+        # Update config.py for modules that require config dependencies (e.g., email)
+        if module.config_dependencies:
+            config_py_path = project_path / "app" / "core" / "config.py"
+            if config_py_path.exists():
+                if create_backup:
+                    file_utils.create_backup(config_py_path)
+
+                # Add required config classes
+                if "email" in module.config_dependencies:
+                    file_utils.add_email_settings_to_config(config_py_path)
 
         # Update app/api/router.py to register the module router
         router_py_path = project_path / "app" / "api" / "router.py"

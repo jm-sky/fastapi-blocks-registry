@@ -175,4 +175,3 @@ async def test_send_email_creates_directory_if_not_exists():
 
         assert result is True
         assert non_existent_dir.exists()
-

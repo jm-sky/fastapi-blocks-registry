@@ -1,0 +1,93 @@
+diff --git a/backend/app/api/router.py b/backend/app/api/router.py
+index dcb35d1..45ab16a 100644
+--- a/backend/app/api/router.py
++++ b/backend/app/api/router.py
+@@ -34,16 +34,6 @@ api_router.include_router(users_router, prefix="/users", tags=["Users"])
+ try:
+     from app.modules.two_factor.router import router as two_factor_router
+     api_router.include_router(two_factor_router, prefix="/two-factor", tags=["Two-Factor Authentication", "Security", "WebAuthn", "TOTP"])
+-except (ImportError, Exception) as e:
++except ImportError:
+     # Module may be absent in some builds; ignore if not present
+-    # Note: Currently catches Exception due to rate limiter initialization issue
+-    # TODO: Fix rate limiter in two_factor module to only require 'request' during actual request handling
+     pass
+-
+-api_router.include_router(auth_router, prefix="/auth", tags=['Authentication'])
+-
+-api_router.include_router(logs_router, prefix="/logs", tags=['Logs', 'Monitoring'])
+-
+-api_router.include_router(users_router, prefix="/users", tags=['Users'])
+-
+-api_router.include_router(two_factor_router, prefix="/two-factor", tags=['Two-Factor Authentication', 'Security', 'WebAuthn', 'TOTP'])
+diff --git a/backend/app/core/config.py b/backend/app/core/config.py
+index 7848070..f141ed9 100644
+--- a/backend/app/core/config.py
++++ b/backend/app/core/config.py
+@@ -316,6 +316,58 @@ class RecaptchaSettings(BaseSettings):
+         return v
+ 
+ 
++class EmailSettings(BaseSettings):
++    """Email service configuration."""
++
++    model_config = _base_config
++
++    enabled: bool = Field(
++        default=True,
++        validation_alias="EMAIL_ENABLED",
++        description="Enable email service"
++    )
++    adapter: Literal["file", "smtp"] = Field(
++        default="file",
++        validation_alias="EMAIL_ADAPTER",
++        description="Email adapter type (file or smtp)"
++    )
++    file_path: str = Field(
++        default="./emails",
++        validation_alias="EMAIL_FILE_PATH",
++        description="Path for file email adapter"
++    )
++    smtp_host: str = Field(
++        default="localhost",
++        validation_alias="SMTP_HOST",
++        description="SMTP server host"
++    )
++    smtp_port: int = Field(
++        default=587,
++        validation_alias="SMTP_PORT",
++        description="SMTP server port"
++    )
++    smtp_user: str = Field(
++        default="",
++        validation_alias="SMTP_USER",
++        description="SMTP username"
++    )
++    smtp_password: str = Field(
++        default="",
++        validation_alias="SMTP_PASSWORD",
++        description="SMTP password"
++    )
++    smtp_from: str = Field(
++        default="noreply@example.com",
++        validation_alias="SMTP_FROM",
++        description="Default from email address"
++    )
++    smtp_use_tls: bool = Field(
++        default=True,
++        validation_alias="SMTP_USE_TLS",
++        description="Use TLS for SMTP connection"
++    )
++
++
+ class Settings(BaseSettings):
+     """
+     Main application settings composed of nested configuration classes.
+@@ -334,6 +386,7 @@ class Settings(BaseSettings):
+     rate_limit: RateLimitSettings = Field(default_factory=RateLimitSettings)
+     logging: LoggingSettings = Field(default_factory=LoggingSettings)
+     recaptcha: RecaptchaSettings = Field(default_factory=RecaptchaSettings)
++    email: EmailSettings = Field(default_factory=EmailSettings)
+ 
+     # Legacy compatibility - still accessible at root level
+     frontend_url: str = Field(

@@ -3,7 +3,6 @@
 import re
 import shutil
 from pathlib import Path
-from typing import List, Optional
 
 
 def copy_directory(src: Path, dst: Path, exist_ok: bool = True) -> None:
@@ -40,7 +39,7 @@ def ensure_directory_exists(path: Path) -> None:
 
 def read_file(file_path: Path) -> str:
     """Read file content as string."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -57,7 +56,7 @@ def append_to_file(file_path: Path, content: str) -> None:
         f.write(content)
 
 
-def update_requirements(requirements_path: Path, new_dependencies: List[str], create_if_missing: bool = True) -> None:
+def update_requirements(requirements_path: Path, new_dependencies: list[str], create_if_missing: bool = True) -> None:
     """
     Add new dependencies to requirements.txt without duplicates.
 
@@ -123,7 +122,7 @@ def update_env_file(env_path: Path, new_vars: dict[str, str], create_if_missing:
             append_to_file(env_path, f"{key}={value}\n")
 
 
-def find_main_py(project_path: Path) -> Optional[Path]:
+def find_main_py(project_path: Path) -> Path | None:
     """
     Find main.py in the project.
 
@@ -148,7 +147,7 @@ def find_main_py(project_path: Path) -> Optional[Path]:
     return None
 
 
-def add_router_to_main(main_py_path: Path, module_name: str, router_prefix: str, tags: List[str]) -> None:
+def add_router_to_main(main_py_path: Path, module_name: str, router_prefix: str, tags: list[str]) -> None:
     """
     Add router import and registration to main.py.
 
@@ -217,7 +216,7 @@ def add_router_to_main(main_py_path: Path, module_name: str, router_prefix: str,
     write_file(main_py_path, content)
 
 
-def find_last_import_line(content: str) -> Optional[int]:
+def find_last_import_line(content: str) -> int | None:
     """
     Find the line number of the last import statement in the file.
 
@@ -236,12 +235,14 @@ def find_last_import_line(content: str) -> Optional[int]:
     return last_import_line
 
 
-def add_router_to_api_router(router_py_path: Path, module_name: str, router_prefix: str, tags: List[str]) -> None:
+def add_router_to_api_router(router_py_path: Path, module_name: str, router_prefix: str, tags: list[str]) -> None:
     """
     Add router import and registration to app/api/router.py.
 
     This is the preferred method for adding routes (vs add_router_to_main).
     Routes should be registered in app/api/router.py, not in main.py.
+
+    Optional modules (like 'two_factor') are added in try-except blocks with ImportError.
 
     Args:
         router_py_path: Path to app/api/router.py
@@ -250,6 +251,9 @@ def add_router_to_api_router(router_py_path: Path, module_name: str, router_pref
         tags: Tags for the router
     """
     content = read_file(router_py_path)
+
+    # List of optional modules that should be in try-except blocks
+    optional_modules = {"two_factor"}
 
     # Prepare import and router registration strings
     import_line = f"from app.modules.{module_name}.router import router as {module_name}_router"
@@ -277,45 +281,52 @@ def add_router_to_api_router(router_py_path: Path, module_name: str, router_pref
     if import_exists and router_exists:
         return  # Already added
 
+    is_optional = module_name in optional_modules
+
     # Step 1: Add import if not present
     if not import_exists:
-        # Find last TOP-LEVEL import line (not inside try-except blocks)
-        # We track indentation level to avoid imports inside try-except
-        last_toplevel_import_idx = None
-        inside_block = False
-        indent_stack = []
-
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-
-            # Track try/except/if blocks by indentation
-            if stripped.startswith(("try:", "except", "if ", "else:", "elif ", "for ", "while ", "with ")):
-                inside_block = True
-                indent_stack.append(len(line) - len(line.lstrip()))
-            elif inside_block and indent_stack:
-                # Check if we've exited the block (dedented)
-                current_indent = len(line) - len(line.lstrip())
-                if stripped and current_indent <= indent_stack[-1]:
-                    inside_block = False
-                    indent_stack = []
-
-            # Only match top-level imports (no indentation or minimal indentation)
-            if re.match(r"^(?:from|import)\s+", line) and not inside_block:
-                last_toplevel_import_idx = i
-
-        # Insert import after the last top-level import
-        if last_toplevel_import_idx is not None:
-            lines.insert(last_toplevel_import_idx + 1, f"{import_line}\n")
+        if is_optional:
+            # For optional modules, import is added inside try-except block
+            # We'll handle this in Step 2
+            pass
         else:
-            # No imports found, add after module docstring (line 2)
-            # Find first non-comment, non-docstring line
-            insert_idx = 0
+            # Find last TOP-LEVEL import line (not inside try-except blocks)
+            # We track indentation level to avoid imports inside try-except
+            last_toplevel_import_idx = None
+            inside_block = False
+            indent_stack = []
+
             for i, line in enumerate(lines):
                 stripped = line.strip()
-                if stripped and not stripped.startswith('"""') and not stripped.startswith("'''") and not stripped.startswith("#"):
-                    insert_idx = i
-                    break
-            lines.insert(insert_idx, f"\n{import_line}\n")
+
+                # Track try/except/if blocks by indentation
+                if stripped.startswith(("try:", "except", "if ", "else:", "elif ", "for ", "while ", "with ")):
+                    inside_block = True
+                    indent_stack.append(len(line) - len(line.lstrip()))
+                elif inside_block and indent_stack:
+                    # Check if we've exited the block (dedented)
+                    current_indent = len(line) - len(line.lstrip())
+                    if stripped and current_indent <= indent_stack[-1]:
+                        inside_block = False
+                        indent_stack = []
+
+                # Only match top-level imports (no indentation or minimal indentation)
+                if re.match(r"^(?:from|import)\s+", line) and not inside_block:
+                    last_toplevel_import_idx = i
+
+            # Insert import after the last top-level import
+            if last_toplevel_import_idx is not None:
+                lines.insert(last_toplevel_import_idx + 1, f"{import_line}\n")
+            else:
+                # No imports found, add after module docstring (line 2)
+                # Find first non-comment, non-docstring line
+                insert_idx = 0
+                for i, line in enumerate(lines):
+                    stripped = line.strip()
+                    if stripped and not stripped.startswith('"""') and not stripped.startswith("'''") and not stripped.startswith("#"):
+                        insert_idx = i
+                        break
+                lines.insert(insert_idx, f"\n{import_line}\n")
 
     # Step 2: Add router registration if not present
     if not router_exists:
@@ -323,8 +334,45 @@ def add_router_to_api_router(router_py_path: Path, module_name: str, router_pref
         while lines and lines[-1].strip() == "":
             lines.pop()
 
-        # Add router registration at the end
-        lines.append(f"\n{router_line}\n")
+        if is_optional:
+            # Check if there's already a try-except block for this module
+            # Look for try block that contains import for this module
+            existing_try_block_idx = None
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("try:"):
+                    # Check next few lines to see if this try block imports our module
+                    for j in range(i + 1, min(i + 10, len(lines))):
+                        if import_line in lines[j]:
+                            existing_try_block_idx = i
+                            break
+                    if existing_try_block_idx is not None:
+                        break
+
+            if existing_try_block_idx is not None:
+                # Try-except exists, add router registration inside it
+                # Find the line with except ImportError
+                for i in range(existing_try_block_idx + 1, len(lines)):
+                    stripped = lines[i].strip()
+                    if stripped.startswith("except ImportError:"):
+                        # Insert router before except block
+                        indent = "    "  # 4 spaces for try block
+                        lines.insert(i, f"{indent}{router_line}\n")
+                        break
+            else:
+                # No try-except exists, create one
+                # Add import and router in try-except block
+                try_block = f"\n# Register {module_name.replace('_', ' ').title()} module (optional, added during development)\n"
+                try_block += "try:\n"
+                try_block += f"    {import_line}\n"
+                try_block += f"    {router_line}\n"
+                try_block += "except ImportError:\n"
+                try_block += "    # Module may be absent in some builds; ignore if not present\n"
+                try_block += "    pass\n"
+                lines.append(try_block)
+        else:
+            # Regular module - add router registration at the end
+            lines.append(f"\n{router_line}\n")
 
     # Write back to file
     new_content = "".join(lines)
@@ -341,6 +389,166 @@ def create_backup(file_path: Path) -> Path:
     backup_path = file_path.with_suffix(file_path.suffix + ".bak")
     shutil.copy2(file_path, backup_path)
     return backup_path
+
+
+def add_email_settings_to_config(config_py_path: Path, create_if_missing: bool = False) -> None:
+    """
+    Add EmailSettings class and email field to Settings class in config.py.
+
+    This is called when installing modules that require email functionality (e.g., auth, two_factor).
+
+    Args:
+        config_py_path: Path to app/core/config.py
+        create_if_missing: If False, raise error if config.py doesn't exist
+    """
+    if not config_py_path.exists():
+        if create_if_missing:
+            # Create basic config.py structure (shouldn't happen in practice)
+            return
+        raise FileNotFoundError(f"Config file not found: {config_py_path}")
+
+    content = read_file(config_py_path)
+
+    # Check if EmailSettings already exists
+    if "class EmailSettings" in content:
+        return  # Already added
+
+    # Check if Literal is imported (needed for EmailSettings.adapter)
+    # Check if there's a typing import that includes Literal
+    has_literal_import = False
+    if "from typing import" in content:
+        # Check if Literal is in any typing import line
+        for line in content.splitlines():
+            if "from typing import" in line and "Literal" in line:
+                has_literal_import = True
+                break
+    needs_literal_import = not has_literal_import
+
+    # Find where to insert EmailSettings (after RecaptchaSettings, before Settings class)
+    recaptcha_settings_end = None
+    settings_class_start = None
+
+    lines = content.splitlines(keepends=True)
+
+    # Add Literal import if needed
+    if needs_literal_import:
+        # Find typing import line
+        typing_import_idx = None
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith("from typing import"):
+                typing_import_idx = i
+                # Check if Literal is already in the import
+                if "Literal" in line:
+                    needs_literal_import = False
+                break
+
+        if needs_literal_import and typing_import_idx is not None:
+            # Add Literal to existing typing import
+            line = lines[typing_import_idx]
+            if "Literal" not in line:
+                # Add Literal to the import
+                if line.strip().endswith(")"):
+                    # Multi-line import
+                    lines[typing_import_idx] = line.replace(")", ", Literal)")
+                else:
+                    # Single-line import
+                    lines[typing_import_idx] = line.rstrip() + ", Literal\n"
+        elif needs_literal_import:
+            # No typing import found, add it after other imports
+            last_import_idx = None
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith(("from ", "import ")):
+                    last_import_idx = i
+            if last_import_idx is not None:
+                lines.insert(last_import_idx + 1, "from typing import Literal\n")
+            else:
+                # No imports at all, add at the beginning
+                lines.insert(2, "from typing import Literal\n")
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        # Find end of RecaptchaSettings class
+        if stripped.startswith("class RecaptchaSettings"):
+            # Find the closing of this class (next class definition or Settings)
+            for j in range(i + 1, len(lines)):
+                if lines[j].strip().startswith("class "):
+                    recaptcha_settings_end = j
+                    break
+        # Find Settings class
+        if stripped.startswith("class Settings"):
+            settings_class_start = i
+            break
+
+    if recaptcha_settings_end is None or settings_class_start is None:
+        # Fallback: insert before Settings class
+        for i, line in enumerate(lines):
+            if line.strip().startswith("class Settings"):
+                settings_class_start = i
+                recaptcha_settings_end = i
+                break
+
+    # Prepare EmailSettings class definition
+    email_settings_class = """class EmailSettings(BaseSettings):
+    \"\"\"Email service configuration.\"\"\"
+
+    model_config = _base_config
+
+    enabled: bool = Field(default=True, validation_alias="EMAIL_ENABLED", description="Enable email service")
+    adapter: Literal["file", "smtp"] = Field(default="file", validation_alias="EMAIL_ADAPTER", description="Email adapter type (file or smtp)")
+    file_path: str = Field(default="./emails", validation_alias="EMAIL_FILE_PATH", description="Path for file email adapter")
+    smtp_host: str = Field(default="localhost", validation_alias="SMTP_HOST", description="SMTP server host")
+    smtp_port: int = Field(default=587, validation_alias="SMTP_PORT", description="SMTP server port")
+    smtp_user: str = Field(default="", validation_alias="SMTP_USER", description="SMTP username")
+    smtp_password: str = Field(default="", validation_alias="SMTP_PASSWORD", description="SMTP password")
+    smtp_from: str = Field(default="noreply@example.com", validation_alias="SMTP_FROM", description="Default from email address")
+    smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS", description="Use TLS for SMTP connection")
+
+
+"""
+
+    # Insert EmailSettings class
+    lines.insert(recaptcha_settings_end, email_settings_class)
+
+    # Now add email field to Settings class
+    # Find where to insert (after recaptcha field, before legacy compatibility comment)
+    email_field_added = False
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        # Check if email field already exists
+        if "email: EmailSettings" in line:
+            email_field_added = True
+            break
+        # Find recaptcha field in Settings class
+        if stripped.startswith("recaptcha: RecaptchaSettings"):
+            # Insert email field after recaptcha
+            indent = len(line) - len(line.lstrip())
+            email_field = f"{' ' * indent}email: EmailSettings = Field(default_factory=EmailSettings)\n"
+            lines.insert(i + 1, email_field)
+            email_field_added = True
+            break
+        # Fallback: find legacy compatibility comment
+        if stripped.startswith("# Legacy compatibility"):
+            # Insert before legacy comment
+            indent = len(line) - len(line.lstrip())
+            email_field = f"{' ' * indent}email: EmailSettings = Field(default_factory=EmailSettings)\n"
+            lines.insert(i, email_field)
+            email_field_added = True
+            break
+
+    if not email_field_added:
+        # Last resort: add at the end of nested settings (before legacy comment)
+        for i in range(len(lines) - 1, -1, -1):
+            if lines[i].strip().startswith("# Legacy compatibility"):
+                indent = len(lines[i]) - len(lines[i].lstrip())
+                email_field = f"{' ' * indent}email: EmailSettings = Field(default_factory=EmailSettings)\n"
+                lines.insert(i, email_field)
+                break
+
+    # Write back to file
+    new_content = "".join(lines)
+    write_file(config_py_path, new_content)
 
 
 def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bool = True) -> None:

@@ -159,23 +159,19 @@ class RecaptchaSettings(BaseSettings):
 
 
 class EmailSettings(BaseSettings):
-    """Email configuration."""
+    """Email service configuration."""
 
     model_config = _base_config
 
     enabled: bool = Field(default=True, validation_alias="EMAIL_ENABLED", description="Enable email service")
-    adapter: str = Field(default="file", validation_alias="EMAIL_ADAPTER", description="Email adapter: 'file' (development) or 'smtp' (production)")
-
-    # SMTP settings (if adapter == "smtp")
-    smtp_host: str = Field(default="", validation_alias="SMTP_HOST", description="SMTP server hostname")
-    smtp_port: int = Field(default=587, validation_alias="SMTP_PORT", description="SMTP server port (587 for TLS, 465 for SSL)")
+    adapter: Literal["file", "smtp"] = Field(default="file", validation_alias="EMAIL_ADAPTER", description="Email adapter type (file or smtp)")
+    file_path: str = Field(default="./emails", validation_alias="EMAIL_FILE_PATH", description="Path for file email adapter")
+    smtp_host: str = Field(default="localhost", validation_alias="SMTP_HOST", description="SMTP server host")
+    smtp_port: int = Field(default=587, validation_alias="SMTP_PORT", description="SMTP server port")
     smtp_user: str = Field(default="", validation_alias="SMTP_USER", description="SMTP username")
     smtp_password: str = Field(default="", validation_alias="SMTP_PASSWORD", description="SMTP password")
-    smtp_from: str = Field(default="noreply@example.com", validation_alias="SMTP_FROM", description="Default sender email address")
-    smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS", description="Use TLS encryption for SMTP")
-
-    # File adapter settings (if adapter == "file")
-    file_path: str = Field(default="./emails", validation_alias="EMAIL_FILE_PATH", description="Directory path for saving emails (file adapter)")
+    smtp_from: str = Field(default="noreply@example.com", validation_alias="SMTP_FROM", description="Default from email address")
+    smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS", description="Use TLS for SMTP connection")
 
 
 class Settings(BaseSettings):

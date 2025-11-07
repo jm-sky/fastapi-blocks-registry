@@ -9,19 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
-## [0.2.14] - 2025-11-07
+## [0.2.15] - 2025-11-07
+
+### Fixed
+- **Router syntax error**: Fixed `add_router_to_api_router()` to place module imports at top of file, not in try-except blocks
+- **Router variable scope**: Fixed issue where `two_factor_router` was used outside try-except block, causing potential `NameError`
+- **Router duplicates**: Added duplicate detection to prevent multiple registrations of the same router
+- **Missing EmailSettings**: Added automatic `EmailSettings` configuration when installing modules that require email (auth, two_factor)
+  - New `config_dependencies` field in registry.json allows modules to declare required config classes
+  - `add_email_settings_to_config()` function automatically adds EmailSettings to config.py
+  - Integrated with module installer to run automatically during module installation
 
 ### Changed
 - **Router structure improvements**: Enhanced router.py organization with better comments and proper module registration
   - Moved module imports to top of file for better code organization
   - Added explicit router registration with proper prefixes and tags
-  - Improved two-factor module registration with better error handling and comments
-- **Health check endpoint**: Added health check endpoint to app_factory.py for system monitoring
+  - Improved two-factor module registration with better error handling using `ImportError` instead of `Exception`
+- **Module metadata**: Added `config_dependencies` field to `ModuleMetadata` for declaring required configuration classes
+- **Registry.json**: Added `config_dependencies: ["email"]` to auth and two_factor modules
+
+### Documentation
+- **Issue documentation**: Added documentation for various issues and fixes from v0.2.14 with resolution status
+
+## [0.2.14] - 2025-11-07
+
+### Fixed
+- **Router syntax error**: Fixed `add_router_to_api_router()` to place module imports at top of file, not in try-except blocks
+- **Router variable scope**: Fixed issue where `two_factor_router` was used outside try-except block, causing potential `NameError`
+- **Router duplicates**: Added duplicate detection to prevent multiple registrations of the same router
+- **Missing EmailSettings**: Added automatic `EmailSettings` configuration when installing modules that require email (auth, two_factor)
+  - New `config_dependencies` field in registry.json allows modules to declare required config classes
+  - `add_email_settings_to_config()` function automatically adds EmailSettings to config.py
+  - Integrated with module installer to run automatically during module installation
+
+### Changed
+- **Router structure improvements**: Enhanced router.py organization with better comments and proper module registration
+  - Moved module imports to top of file for better code organization
+  - Added explicit router registration with proper prefixes and tags
+  - Improved two-factor module registration with better error handling using `ImportError` instead of `Exception`
+- **Module metadata**: Added `config_dependencies` field to `ModuleMetadata` for declaring required configuration classes
+- **Registry.json**: Added `config_dependencies: ["email"]` to auth and two_factor modules
 
 ### Documentation
 - **Account deletion plan**: Added comprehensive plan for user account deletion functionality
 - **Email notifications plan**: Added detailed plan for email notification system
-- **Issue documentation**: Added documentation for various issues and fixes from v0.2.13
+- **Issue documentation**: Added documentation for various issues and fixes from v0.2.14 with resolution status
 
 ## [0.2.13] - 2025-11-07
 

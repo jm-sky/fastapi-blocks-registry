@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -17,13 +16,14 @@ class ModuleMetadata(BaseModel):
     dependencies: list[str] = Field(default_factory=list, description="List of Python package dependencies")
     module_dependencies: list[str] = Field(default_factory=list, description="List of other modules this module depends on")
     common_dependencies: list[str] = Field(default_factory=list, description="List of common utility modules (e.g., ['pagination', 'search'])")
+    config_dependencies: list[str] = Field(default_factory=list, description="List of config classes this module requires (e.g., ['email'])")
     python_version: str = Field(default=">=3.12", description="Required Python version")
     env: dict[str, str] = Field(default_factory=dict, description="Environment variables with default values")
-    settings_class: Optional[str] = Field(default=None, description="Name of the settings class in the module")
+    settings_class: str | None = Field(default=None, description="Name of the settings class in the module")
     router_prefix: str = Field(default="/api/v1", description="URL prefix for the router")
     tags: list[str] = Field(default_factory=list, description="OpenAPI tags for the router")
-    author: Optional[str] = Field(default=None, description="Module author")
-    repository: Optional[str] = Field(default=None, description="Module repository URL")
+    author: str | None = Field(default=None, description="Module author")
+    repository: str | None = Field(default=None, description="Module repository URL")
 
 
 class RegistryManager:
@@ -45,14 +45,14 @@ class RegistryManager:
         if not self.registry_path.exists():
             raise FileNotFoundError(f"Registry not found: {self.registry_path}")
 
-        with open(self.registry_path, "r", encoding="utf-8") as f:
+        with open(self.registry_path, encoding="utf-8") as f:
             data = json.load(f)
 
         # Parse each module metadata
         for module_name, module_data in data.items():
             self._registry[module_name] = ModuleMetadata(**module_data)
 
-    def get_module(self, module_name: str) -> Optional[ModuleMetadata]:
+    def get_module(self, module_name: str) -> ModuleMetadata | None:
         """
         Get module metadata by name.
 
@@ -85,7 +85,7 @@ class RegistryManager:
         """
         return module_name in self._registry
 
-    def get_module_path(self, module_name: str, base_path: Optional[Path] = None) -> Path:
+    def get_module_path(self, module_name: str, base_path: Path | None = None) -> Path:
         """
         Get absolute path to module directory.
 

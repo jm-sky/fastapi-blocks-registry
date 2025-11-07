@@ -33,9 +33,8 @@ api_router.include_router(users_router, prefix="/users", tags=["Users"])
 # Register Two-Factor module (optional, added during development)
 try:
     from app.modules.two_factor.router import router as two_factor_router
+
     api_router.include_router(two_factor_router, prefix="/two-factor", tags=["Two-Factor Authentication", "Security", "WebAuthn", "TOTP"])
-except (ImportError, Exception) as e:
+except ImportError:
     # Module may be absent in some builds; ignore if not present
-    # Note: Currently catches Exception due to rate limiter initialization issue
-    # TODO: Fix rate limiter in two_factor module to only require 'request' during actual request handling
     pass
