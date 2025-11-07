@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes yet._
 
+## [0.2.13] - 2025-11-07
+
+### Fixed
+- **Critical: Router syntax error in CLI-generated code**: Fixed `add_router_to_api_router()` function that was incorrectly placing module imports inside `try-except` blocks
+  - This caused E402 syntax errors ("Module level import not at top of file") preventing application startup
+  - The fix implements indentation tracking to identify top-level imports and avoid placing new imports inside control flow blocks
+  - New logic properly handles files with existing `try-except` blocks (e.g., for optional modules like `two_factor`)
+  - All CLI tests pass successfully with the fix
+- **Email adapter cleanup**: Removed unused `email_dir` attribute from `FileEmailAdapter` class
+- **Import error in FileEmailAdapter**: Changed from `TYPE_CHECKING` conditional import to direct import of `EmailAdapter` to fix runtime `NameError`
+
+### Changed
+- **Test dependencies**: Added `pytest-mock>=3.15.0` to `requirements.txt` for email adapter tests
+
+### Improved
+- **Test script enhancement**: Added `--no-cleanup` option to `scripts/test-cli.sh` for easier debugging
+  - Preserves test environment and generated project files after test completion
+  - Displays helpful instructions for activating test environment and inspecting generated files
+  - Useful for manual inspection and debugging of CLI-generated code
+
 ## [0.2.12] - 2025-11-06
 
 ### Added
@@ -340,7 +360,8 @@ If you have modules or customizations based on v0.1.x:
 [0.2.10]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.9...v0.2.10
 [0.2.11]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.10...v0.2.11
 [0.2.12]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.11...v0.2.12
-[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.12...HEAD
+[0.2.13]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.12...v0.2.13
+[Unreleased]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.2.13...HEAD
 [0.1.7]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jm-sky/fastapi-blocks-registry/compare/v0.1.4...v0.1.6
 [0.1.4]: https://github.com/jm-sky/fastapi-blocks-registry/releases/tag/v0.1.4
