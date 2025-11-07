@@ -10,22 +10,32 @@
 # - Validating module installation
 #
 # Usage:
-#   ./scripts/test-cli.sh
+#   ./scripts/test-cli.sh [--no-cleanup]
+#
+# Options:
+#   --no-cleanup    Keep test files after script completes (useful for inspection)
 #
 # Example:
 #   cd /home/madeyskij/projects/private/fastapi-blocks-registry
 #   ./scripts/test-cli.sh
+#   ./scripts/test-cli.sh --no-cleanup  # Keep test files for manual inspection
 #
 # The script will:
 # 1. Create temporary test environment
 # 2. Run all tests
-# 3. Clean up automatically on exit
+# 3. Clean up automatically on exit (unless --no-cleanup is specified)
 #
 # Exit codes:
 #   0 - All tests passed
 #   1 - One or more tests failed
 
 set -e  # Exit on error
+
+# Parse command line arguments
+NO_CLEANUP=false
+if [[ "$1" == "--no-cleanup" ]]; then
+    NO_CLEANUP=true
+fi
 
 echo "🧪 Testing fastapi-blocks-registry local installation"
 echo "=================================================="
@@ -38,8 +48,17 @@ NC='\033[0m' # No Color
 
 # Cleanup function
 cleanup() {
-    echo -e "\n${YELLOW}🧹 Cleaning up...${NC}"
-    rm -rf /tmp/test-fastapi-registry-env /tmp/test-fastapi-project
+    if [[ "$NO_CLEANUP" == "true" ]]; then
+        echo -e "\n${YELLOW}📁 Test files preserved:${NC}"
+        echo -e "   Environment: /tmp/test-fastapi-registry-env"
+        echo -e "   Project: /tmp/test-fastapi-project"
+        echo -e "\n${YELLOW}💡 To activate test environment:${NC}"
+        echo -e "   source /tmp/test-fastapi-registry-env/bin/activate"
+        echo -e "   cd /tmp/test-fastapi-project"
+    else
+        echo -e "\n${YELLOW}🧹 Cleaning up...${NC}"
+        rm -rf /tmp/test-fastapi-registry-env /tmp/test-fastapi-project
+    fi
 }
 
 # Trap cleanup on exit

@@ -279,18 +279,43 @@ def add_router_to_api_router(router_py_path: Path, module_name: str, router_pref
 
     # Step 1: Add import if not present
     if not import_exists:
-        # Find last import line in the file
-        last_import_idx = None
-        for i, line in enumerate(lines):
-            if re.match(r"^\s*(?:from|import)\s+", line):
-                last_import_idx = i
+        # Find last TOP-LEVEL import line (not inside try-except blocks)
+        # We track indentation level to avoid imports inside try-except
+        last_toplevel_import_idx = None
+        inside_block = False
+        indent_stack = []
 
-        # Insert import after the last import
-        if last_import_idx is not None:
-            lines.insert(last_import_idx + 1, f"{import_line}\n")
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+
+            # Track try/except/if blocks by indentation
+            if stripped.startswith(("try:", "except", "if ", "else:", "elif ", "for ", "while ", "with ")):
+                inside_block = True
+                indent_stack.append(len(line) - len(line.lstrip()))
+            elif inside_block and indent_stack:
+                # Check if we've exited the block (dedented)
+                current_indent = len(line) - len(line.lstrip())
+                if stripped and current_indent <= indent_stack[-1]:
+                    inside_block = False
+                    indent_stack = []
+
+            # Only match top-level imports (no indentation or minimal indentation)
+            if re.match(r"^(?:from|import)\s+", line) and not inside_block:
+                last_toplevel_import_idx = i
+
+        # Insert import after the last top-level import
+        if last_toplevel_import_idx is not None:
+            lines.insert(last_toplevel_import_idx + 1, f"{import_line}\n")
         else:
             # No imports found, add after module docstring (line 2)
-            lines.insert(2, f"\n{import_line}\n")
+            # Find first non-comment, non-docstring line
+            insert_idx = 0
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped and not stripped.startswith('"""') and not stripped.startswith("'''") and not stripped.startswith("#"):
+                    insert_idx = i
+                    break
+            lines.insert(insert_idx, f"\n{import_line}\n")
 
     # Step 2: Add router registration if not present
     if not router_exists:
@@ -329,9 +354,6 @@ def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bo
         gitignore_path: Path to .gitignore file
         create_if_missing: Create file if it doesn't exist
     """
-    # Modules that need .gitignore exceptions
-    MODULES_NEEDING_EXCEPTION = ["logs"]
-
     if not gitignore_path.exists():
         if create_if_missing:
             write_file(gitignore_path, "")
@@ -355,7 +377,7 @@ def update_gitignore_for_logs_module(gitignore_path: Path, create_if_missing: bo
         match_line = content[: match.end()].count("\n")
 
         # Insert exception with comment
-        exception_line = f"!app/modules/logs  # Added by fastapi-registry for logs module\n"
+        exception_line = "!app/modules/logs  # Added by fastapi-registry for logs module\n"
         lines.insert(match_line + 1, exception_line)
         content = "".join(lines)
     else:
