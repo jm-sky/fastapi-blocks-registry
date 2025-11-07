@@ -1,7 +1,7 @@
 """Application factory for creating FastAPI app instances."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError

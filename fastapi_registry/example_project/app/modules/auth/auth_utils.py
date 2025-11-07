@@ -8,7 +8,6 @@ from passlib.context import CryptContext
 from ...core.config import settings
 from .types.jwt import CreateAccessTokenOptions, CreateRefreshTokenOptions, JWTPayload
 
-
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

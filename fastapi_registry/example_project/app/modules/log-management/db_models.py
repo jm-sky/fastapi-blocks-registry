@@ -7,7 +7,7 @@ including errors, warnings, and informational messages.
 from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, String, Text, Index
+from sqlalchemy import DateTime, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base

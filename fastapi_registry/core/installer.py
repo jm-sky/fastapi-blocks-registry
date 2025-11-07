@@ -70,11 +70,6 @@ class ModuleInstaller:
         if module.env:
             file_utils.update_env_file(env_path, module.env, create_if_missing=True)
 
-        # Update .gitignore for modules that need exceptions (e.g., logs)
-        gitignore_path = project_path / ".gitignore"
-        if module_name == "logs":
-            file_utils.update_gitignore_for_logs_module(gitignore_path, create_if_missing=True)
-
         # Update config.py for modules that require config dependencies (e.g., email)
         if module.config_dependencies:
             config_py_path = project_path / "app" / "core" / "config.py"

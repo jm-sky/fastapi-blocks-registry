@@ -8,6 +8,7 @@ from app.core.limiter import rate_limit
 from app.modules.auth.dependencies import CurrentUser
 from app.modules.auth.repositories import get_user_repository
 from app.modules.auth.types.repository import UserRepositoryInterface
+
 from .repositories import get_two_factor_repository
 from .schemas import (
     BackupCodesResponse,

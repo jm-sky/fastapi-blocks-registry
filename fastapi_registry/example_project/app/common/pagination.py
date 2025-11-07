@@ -5,8 +5,8 @@ request parameters, response models, and helper functions.
 """
 
 from typing import Generic, TypeVar
-from pydantic import BaseModel, Field
 
+from pydantic import BaseModel, Field
 
 T = TypeVar("T")
 

@@ -1,7 +1,8 @@
 """Custom decorators for authentication, rate limiting, and validation."""
 
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import Depends, HTTPException, status
 

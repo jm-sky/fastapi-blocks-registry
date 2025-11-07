@@ -1,12 +1,12 @@
 """Common utility functions."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
 def utc_now() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def to_dict(obj: Any, exclude: set[str] | None = None) -> dict[str, Any]:

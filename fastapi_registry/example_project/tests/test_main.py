@@ -1,7 +1,7 @@
 """Test main application endpoints."""
 
-from fastapi.testclient import TestClient
 from fastapi import status
+from fastapi.testclient import TestClient
 
 
 def test_read_root(client: TestClient):

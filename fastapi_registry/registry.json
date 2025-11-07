@@ -49,11 +49,11 @@
     "repository": "https://github.com/yourusername/fastapi-blocks-registry",
     "notes": "IMPORTANT: This module has mock authentication. To use with auth module, modify users/dependencies.py to import from app.modules.auth.dependencies. See users/dependencies.py and users/models.py for integration instructions."
   },
-  "logs": {
+  "log-management": {
     "name": "Logging System",
     "description": "Comprehensive logging with database storage, error tracking decorator, search, and REST API. Supports multiple log levels, request tracing, and user activity tracking.",
     "version": "1.0.0",
-    "path": "example_project/app/modules/logs",
+    "path": "example_project/app/modules/log-management",
     "dependencies": [
       "sqlalchemy[asyncio]>=2.0.35",
       "alembic>=1.13.0",
@@ -82,7 +82,7 @@
       "Automatic cleanup of old logs",
       "REST API for log management"
     ],
-    "notes": "Use @log_errors decorator to automatically log exceptions. The decorator extracts user_id, request_id, and log_service from function parameters. See logs/README.md for usage examples."
+    "notes": "Use @log_errors decorator to automatically log exceptions. The decorator extracts user_id, request_id, and log_service from function parameters. See log-management/README.md for usage examples."
   },
   "two_factor": {
     "name": "Two-Factor Authentication",

@@ -484,9 +484,10 @@ async def _delete_user_from_db(user_id: str) -> None:
     Args:
         user_id: User ID to delete
     """
+    from sqlalchemy import select
+
     from app.core.database import get_db
     from app.modules.auth.db_models import UserDB
-    from sqlalchemy import select
 
     async for db in get_db():
         # Find user

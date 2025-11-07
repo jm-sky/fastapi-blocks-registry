@@ -11,7 +11,7 @@ Usage:
     await email_service.send_welcome_email("user@example.com", "John Doe")
 """
 
-from .service import EmailService, get_email_service
 from .adapter import EmailAdapter
+from .service import EmailService, get_email_service
 
 __all__ = ["EmailService", "EmailAdapter", "get_email_service"]

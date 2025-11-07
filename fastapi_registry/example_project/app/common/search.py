@@ -5,6 +5,7 @@ full-text search across multiple columns with SQL LIKE/ILIKE.
 """
 
 from typing import Any
+
 from sqlalchemy import Column, or_
 from sqlalchemy.sql import ColumnElement
 

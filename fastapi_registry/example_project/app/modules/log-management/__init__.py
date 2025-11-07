@@ -11,7 +11,7 @@ This module provides comprehensive logging functionality with:
 
 Usage:
     # Using the decorator
-    from app.modules.logs.decorators import log_errors
+    from app.modules.log_management.decorators import log_errors
 
     @log_errors(message="Failed to process data")
     async def process_data(data: dict, log_service: LogService):
@@ -19,7 +19,7 @@ Usage:
         pass
 
     # Using the service directly
-    from app.modules.logs.service import LogService
+    from app.modules.log_management.service import LogService
 
     await log_service.log_error(
         message="Something went wrong",
@@ -28,18 +28,18 @@ Usage:
     )
 """
 
-from .router import router
-from .models import Log, LogCreate
-from .db_models import LogLevel, LogDB
-from .service import LogService
-from .repositories import LogRepository, get_log_repository
+from .db_models import LogDB, LogLevel
 from .decorators import log_errors
+from .models import Log, LogCreate
+from .repositories import LogRepository, get_log_repository
+from .router import router
 from .schemas import (
-    LogResponse,
     LogCreateRequest,
     LogListResponse,
+    LogResponse,
     MessageResponse,
 )
+from .service import LogService
 
 __all__ = [
     "router",

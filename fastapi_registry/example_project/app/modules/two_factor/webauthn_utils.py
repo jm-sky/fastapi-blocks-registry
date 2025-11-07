@@ -6,14 +6,15 @@ from typing import Any
 
 from webauthn import (
     generate_registration_options,
-    verify_registration_response,
     options_to_json,
+    verify_registration_response,
 )
 from webauthn.helpers import (
     base64url_to_bytes,
     bytes_to_base64url,
     parse_registration_credential_json,
 )
+
 from app.core.config import settings
 
 

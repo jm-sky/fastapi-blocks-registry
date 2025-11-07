@@ -5,12 +5,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from .service import AuthService
-from .types.repository import UserRepositoryInterface
 from .auth_utils import verify_token
-from .exceptions import ExpiredTokenError, InvalidTokenError, InactiveUserError
+from .exceptions import ExpiredTokenError, InactiveUserError, InvalidTokenError
 from .models import User
 from .repositories import get_user_repository
+from .service import AuthService
+from .types.repository import UserRepositoryInterface
 
 # HTTP Bearer security scheme
 security = HTTPBearer()

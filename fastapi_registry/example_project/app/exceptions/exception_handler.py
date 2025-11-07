@@ -1,20 +1,17 @@
 """Global exception handlers for the application."""
 
 import logging
-from typing import Union
 
-from fastapi import Request, status
+from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException
 
 from app.exceptions.custom_exceptions import AppException
-
 
 logger = logging.getLogger(__name__)
 
 
-async def http_exception_handler(request: Request, exc: Union[HTTPException, AppException, Exception]) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: HTTPException | AppException | Exception) -> JSONResponse:
     """
     Global exception handler for HTTP and application exceptions.
 

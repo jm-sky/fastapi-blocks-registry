@@ -15,8 +15,8 @@ The CLI is organized into command groups:
 - shell: Interactive shell (future)
 """
 
-from .main import app, main
 from .commands import users_app
+from .main import app, main
 
 # Register command groups
 app.add_typer(users_app, name="users")

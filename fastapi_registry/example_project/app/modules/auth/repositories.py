@@ -23,18 +23,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 
-from .types.repository import UserRepositoryInterface
-from .models import User
-from .db_models import UserDB
 from .auth_utils import (
     create_password_reset_token,
     get_password_hash,
     verify_password,
 )
+from .db_models import UserDB
 from .exceptions import (
     UserAlreadyExistsError,
 )
-
+from .models import User
+from .types.repository import UserRepositoryInterface
 
 logger = logging.getLogger(__name__)
 

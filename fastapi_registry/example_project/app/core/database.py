@@ -4,7 +4,7 @@ This module provides async database connectivity for both SQLite and PostgreSQL.
 It uses SQLAlchemy 2.0+ with async engine and sessions.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,

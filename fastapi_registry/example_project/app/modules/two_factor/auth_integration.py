@@ -11,16 +11,16 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.modules.auth.auth_utils import create_access_token, create_refresh_token
-from app.modules.auth.service import AuthService
-from app.modules.auth.schemas import LoginResponse, UserResponse
-from app.modules.auth.repositories import get_user_repository
-from app.modules.auth.types.repository import UserRepositoryInterface
 from app.core.config import settings
+from app.modules.auth.auth_utils import create_access_token, create_refresh_token
+from app.modules.auth.repositories import get_user_repository
+from app.modules.auth.schemas import LoginResponse, UserResponse
+from app.modules.auth.service import AuthService
+from app.modules.auth.types.repository import UserRepositoryInterface
 
 from .repositories import get_two_factor_repository
-from .service import TwoFactorService
 from .schemas import TwoFactorRequiredResponse
+from .service import TwoFactorService
 from .types.repository import TwoFactorRepositoryInterface
 
 

@@ -35,8 +35,8 @@ DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/dbname
 The `@log_errors` decorator automatically catches and logs exceptions:
 
 ```python
-from app.modules.logs.decorators import log_errors
-from app.modules.logs.service import LogService
+from app.modules.log_management.decorators import log_errors
+from app.modules.log_management.service import LogService
 
 @log_errors(message="Failed to process user data")
 async def process_user(
@@ -66,8 +66,8 @@ For manual logging:
 
 ```python
 from fastapi import Depends
-from app.modules.logs.service import LogService
-from app.modules.logs.repositories import get_log_repository
+from app.modules.log_management.service import LogService
+from app.modules.log_management.repositories import get_log_repository
 
 @router.post("/users")
 async def create_user(
@@ -107,8 +107,8 @@ For low-level database operations:
 
 ```python
 from fastapi import Depends
-from app.modules.logs.repositories import LogRepository, get_log_repository
-from app.modules.logs.db_models import LogLevel
+from app.modules.log_management.repositories import LogRepository, get_log_repository
+from app.modules.log_management.db_models import LogLevel
 
 @router.get("/process")
 async def process_data(
@@ -129,7 +129,7 @@ Mount the router in your main application:
 
 ```python
 from fastapi import FastAPI
-from app.modules.logs.router import router as logs_router
+from app.modules.log_management.router import router as logs_router
 
 app = FastAPI()
 app.include_router(logs_router, prefix="/api/v1/logs", tags=["logs"])
@@ -230,7 +230,7 @@ Set up automatic cleanup of old logs:
 
 ```python
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from app.modules.logs.service import LogService
+from app.modules.log_management.service import LogService
 
 scheduler = AsyncIOScheduler()
 
@@ -311,8 +311,8 @@ Test the decorator:
 
 ```python
 import pytest
-from app.modules.logs.decorators import log_errors
-from app.modules.logs.service import LogService
+from app.modules.log_management.decorators import log_errors
+from app.modules.log_management.service import LogService
 
 @pytest.mark.asyncio
 async def test_log_errors_decorator(log_service: LogService):

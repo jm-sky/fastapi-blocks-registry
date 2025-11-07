@@ -81,17 +81,22 @@ Jeśli zmiana nazwy nie jest możliwa, CLI powinno:
 
 ---
 
-## ✅ RESOLVED (częściowo)
+## ✅ RESOLVED
 
-**Status**: Rozwiązane częściowo - CLI automatycznie dodaje wyjątek do .gitignore
+**Status**: Naprawione w v0.2.15 - zmieniono nazwę modułu z `logs` na `log-management`
 
 **Zmiany**:
-- Funkcja `update_gitignore_for_logs_module` w `fastapi_registry/core/file_utils.py` już automatycznie:
-  - Dodaje wyjątek `!app/modules/logs` do `.gitignore` podczas instalacji modułu `logs`
-  - Sprawdza czy wyjątek już istnieje przed dodaniem
-  - Dodaje komentarz `# Added by fastapi-registry for logs module`
-- Funkcja jest wywoływana automatycznie w `fastapi_registry/core/installer.py` (linia 76-77)
+- Zmieniono nazwę katalogu modułu z `logs` na `log-management` w `fastapi_registry/example_project/app/modules/`
+- Zaktualizowano `fastapi_registry/registry.json` - zmieniono klucz z `"logs"` na `"log-management"` i path
+- Zaktualizowano `fastapi_registry/example_project/app/api/router.py` - zmieniono import z `app.modules.logs` na `app.modules.log_management`
+- Zaktualizowano wszystkie importy w plikach modułu (`__init__.py`, `example_usage.py`, `README.md`)
+- Usunięto funkcję `update_gitignore_for_logs_module` z `fastapi_registry/core/file_utils.py` (nie jest już potrzebna)
+- Usunięto wywołanie funkcji z `fastapi_registry/core/installer.py`
+- Zaktualizowano `CLAUDE.md` - zmieniono referencję w dokumentacji struktury projektu
 
-**Uwaga**: Sugestia zmiany nazwy modułu z `logs` na `log-management` pozostaje do rozważenia w przyszłości, ale obecne rozwiązanie (automatyczne dodawanie wyjątku do .gitignore) jest wystarczające.
+**Korzyści**:
+- Moduł nie koliduje już z typowymi wzorcami `.gitignore` (nie wymaga wyjątków)
+- Nazwa jest bardziej opisowa i jasno określa przeznaczenie modułu
+- Nie wymaga ręcznej konfiguracji `.gitignore` w każdym projekcie
 
 **Data rozwiązania**: 2025-11-07

@@ -4,11 +4,11 @@ This file demonstrates how to use the logging module in your FastAPI application
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from app.modules.logs.decorators import log_errors
-from app.modules.logs.service import LogService
-from app.modules.logs.repositories import get_log_repository, LogRepository
-from app.modules.logs.db_models import LogLevel
 
+from app.modules.log_management.db_models import LogLevel
+from app.modules.log_management.decorators import log_errors
+from app.modules.log_management.repositories import LogRepository, get_log_repository
+from app.modules.log_management.service import LogService
 
 # Example router
 example_router = APIRouter(prefix="/example", tags=["example"])
@@ -135,5 +135,5 @@ async def advanced_log_search(level: LogLevel | None = None, user_id: str | None
 
 
 # To use this example in your main.py:
-# from app.modules.logs.example_usage import example_router
+# from app.modules.log_management.example_usage import example_router
 # app.include_router(example_router, prefix="/api/v1")

@@ -1,7 +1,8 @@
 """Rate limiting configuration."""
 
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Any
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse

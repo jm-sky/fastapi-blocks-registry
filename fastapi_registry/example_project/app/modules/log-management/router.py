@@ -7,14 +7,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from .db_models import LogLevel
 from .repositories import LogRepository, get_log_repository
-from .service import LogService
 from .schemas import (
     LogCreateRequest,
     LogListResponse,
     LogResponse,
     MessageResponse,
 )
-
+from .service import LogService
 
 # Create router
 router = APIRouter()

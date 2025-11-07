@@ -11,7 +11,6 @@ from .db_models import LogLevel
 from .models import Log
 from .repositories import LogRepository
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -111,7 +110,7 @@ class LogService:
         Returns:
             Number of deleted logs
         """
-        from datetime import timedelta, UTC
+        from datetime import UTC, timedelta
 
         cutoff_date = datetime.now(UTC) - timedelta(days=days)
         deleted_count = await self.log_repository.delete_old_logs(cutoff_date)

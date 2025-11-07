@@ -1,7 +1,6 @@
 """Pydantic schemas for user management endpoints."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -17,10 +16,10 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """User update request schema with camelCase."""
 
-    email: Optional[EmailStr] = None
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    role: Optional[str] = Field(None, pattern="^(user|admin|moderator)$")
-    isActive: Optional[bool] = None
+    email: EmailStr | None = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    role: str | None = Field(None, pattern="^(user|admin|moderator)$")
+    isActive: bool | None = None
 
 
 class UserResponse(BaseModel):

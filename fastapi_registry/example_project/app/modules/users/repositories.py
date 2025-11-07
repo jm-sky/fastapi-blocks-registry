@@ -18,16 +18,15 @@ except ImportError:
     USE_ULID = False
 
 from fastapi import Depends
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.common.search import SearchMixin
+from app.core.database import get_db
 
-from .models import User
 from .db_models import UserDB
 from .exceptions import UserAlreadyExistsError
-
+from .models import User
 
 logger = logging.getLogger(__name__)
 

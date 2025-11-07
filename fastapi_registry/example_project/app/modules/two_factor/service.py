@@ -250,6 +250,7 @@ class TwoFactorService:
     async def verify_totp_login(self, two_factor_token: str, code: str) -> dict[str, Any]:
         """Verify TOTP code during login and return JWT tokens."""
         from app.modules.auth.auth_utils import create_access_token, create_refresh_token
+
         from .auth_utils import verify_two_factor_token
 
         # Verify 2FA token
@@ -357,9 +358,10 @@ class TwoFactorService:
         origin: str | None = None,
     ) -> dict[str, Any]:
         """Complete passkey registration by verifying credential and saving."""
-        from .webauthn_utils import verify_registration
-        from .crypto_utils import encrypt_secret
         import json
+
+        from .crypto_utils import encrypt_secret
+        from .webauthn_utils import verify_registration
 
         # Verify registration token
         payload = _verify_setup_token(registration_token)

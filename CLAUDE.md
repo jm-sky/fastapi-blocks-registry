@@ -313,7 +313,7 @@ fastapi-blocks-registry/
 │   │   │   ├── modules/        # Feature modules (1:1 with target)
 │   │   │   │   ├── auth/       # Authentication module
 │   │   │   │   ├── users/      # Users module
-│   │   │   │   ├── logs/       # Logging module
+│   │   │   │   ├── log-management/  # Logging module
 │   │   │   │   └── two_factor/ # 2FA module
 │   │   │   ├── common/         # Common utilities
 │   │   │   └── exceptions/     # Exception handlers
